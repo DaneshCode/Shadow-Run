@@ -11,7 +11,7 @@ import pygame
 SCREEN_WIDTH = 1280
 SCREEN_HEIGHT = 720
 FPS = 60
-TITLE = "NIGHTMARE RUNNER - Endless Horror"
+TITLE = "SHADOW RUN : endless nightmare"
 
 # =============================================================================
 # COLORS - Dark Horror Theme

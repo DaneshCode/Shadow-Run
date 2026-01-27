@@ -339,7 +339,7 @@ class MainMenu:
         # Fonts
         self.font_title = pygame.font.Font(None, 96)
         self.font_subtitle = pygame.font.Font(None, 36)
-        self.font_button = pygame.font.Font(None, 48)
+        self.font_button = pygame.font.Font(None, 40)
 
         # Buttons
         button_width = 250
