@@ -56,10 +56,9 @@ class Game:
         self._init_ui()
 
         # Game statistics
-        self.distance_traveled = 0
-        self.start_x = 0
         self.difficulty_level = 1
         self.last_difficulty_score = 0
+        self.start_x = 0  # Track starting position for distance-based scoring
 
         # Player name for leaderboard
         self.player_name = "Player"
@@ -142,11 +141,10 @@ class Game:
         )
 
         # Reset statistics
-        self.distance_traveled = 0
-        self.start_x = self.player.rect.x
         self.difficulty_level = 1
         self.last_difficulty_score = 0
         self.game_speed = 1.0
+        self.start_x = self.player.rect.x  # Track starting position for scoring
 
         # Reset difficulty manager
         self.difficulty_manager.reset()
@@ -375,11 +373,9 @@ class Game:
         )
         self.sound_manager.update_ambient_audio(1 / FPS)
 
-        # Update distance
-        self.distance_traveled = max(0, (self.player.rect.x - self.start_x) / 50)
-
         # Add distance-based score
-        distance_score = int(self.distance_traveled)
+        distance_traveled = max(0, (self.player.rect.x - self.start_x) / 50)
+        distance_score = int(distance_traveled)
         if distance_score > self.player.score // 10:
             self.player.add_score(1)
 
@@ -519,14 +515,11 @@ class Game:
         self.leaderboard.add_entry(
             self.player_name,
             self.player.score,
-            self.distance_traveled,
             self.player.coins,
         )
 
         # Update game over screen
-        self.game_over_screen.set_data(
-            self.player.score, high_score, self.distance_traveled, self.player.coins
-        )
+        self.game_over_screen.set_data(self.player.score, high_score, self.player.coins)
 
         self.sound_manager.play_sound("death")
 
@@ -536,6 +529,13 @@ class Game:
         mouse_pressed = pygame.mouse.get_pressed()
 
         action = self.pause_menu.update(mouse_pos, mouse_pressed)
+
+        # Apply volume changes from pause menu
+        self.sound_manager.set_music_volume(self.pause_menu.music_volume)
+        self.sound_manager.set_sfx_volume(self.pause_menu.sfx_volume)
+        # Sync with settings screen
+        self.settings_screen.music_volume = self.pause_menu.music_volume
+        self.settings_screen.sfx_volume = self.pause_menu.sfx_volume
 
         if action == "resume":
             self.sound_manager.play_sound("click")
@@ -587,6 +587,9 @@ class Game:
         # Apply volume changes
         self.sound_manager.set_music_volume(self.settings_screen.music_volume)
         self.sound_manager.set_sfx_volume(self.settings_screen.sfx_volume)
+        # Sync with pause menu
+        self.pause_menu.music_volume = self.settings_screen.music_volume
+        self.pause_menu.sfx_volume = self.settings_screen.sfx_volume
 
         if action == "back":
             self.sound_manager.play_sound("click")
@@ -607,7 +610,6 @@ class Game:
             self.hud.draw(
                 self.screen,
                 self.player,
-                self.distance_traveled,
                 self.difficulty_level,
                 self.leaderboard.get_high_score(),
             )
@@ -617,7 +619,6 @@ class Game:
             self.hud.draw(
                 self.screen,
                 self.player,
-                self.distance_traveled,
                 self.difficulty_level,
                 self.leaderboard.get_high_score(),
             )

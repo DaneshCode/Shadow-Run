@@ -80,8 +80,8 @@ BULLET_COLOR = (255, 150, 50)
 BULLET_LIFETIME = 2000  # milliseconds
 
 # Ammo system
-MAX_AMMO = 10
-AMMO_REGEN_TIME = 6000  # milliseconds to regenerate 1 bullet (6 seconds per bullet)
+MAX_AMMO = 5
+AMMO_REGEN_TIME = 10000  # milliseconds to regenerate 1 bullet (10 seconds per bullet)
 AMMO_COLOR = (80, 180, 255)
 AMMO_EMPTY_COLOR = (60, 60, 80)
 

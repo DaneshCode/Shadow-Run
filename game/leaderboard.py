@@ -51,20 +51,19 @@ class Leaderboard:
         except IOError as e:
             print(f"Error saving leaderboard: {e}")
 
-    def add_entry(self, name, score, distance, coins=0):
+    def add_entry(self, name, score, coins=0):
         """
         Add a new entry to the leaderboard
 
         Args:
             name: Player name
             score: Final score
-            distance: Distance traveled
             coins: Coins collected
 
         Returns:
             int: Rank of the new entry (1-based), or 0 if not in top entries
         """
-        entry = {"name": name, "score": score, "distance": distance, "coins": coins}
+        entry = {"name": name, "score": score, "coins": coins}
 
         # Add entry
         self.entries.append(entry)

@@ -144,18 +144,17 @@ class HUD:
         self.coin_x = screen_width - 20
         self.coin_y = 60
 
-        # Distance display
-        self.distance_x = screen_width - 20
-        self.distance_y = 100
+        # Best score display position
+        self.best_score_x = screen_width - 20
+        self.best_score_y = 100
 
-    def draw(self, surface, player, distance=0, difficulty=1, high_score=0):
+    def draw(self, surface, player, difficulty=1, high_score=0):
         """
         Draw the HUD
 
         Args:
             surface: Surface to draw on
             player: Player object
-            distance: Distance traveled
             difficulty: Current difficulty level
             high_score: Current high score
         """
@@ -282,27 +281,12 @@ class HUD:
             coin_surface, (self.coin_x - coin_surface.get_width(), self.coin_y)
         )
 
-        # Distance
-        distance_text = f"DISTANCE: {int(distance)}m"
-        distance_surface = self.font_medium.render(distance_text, True, WHITE)
-        surface.blit(
-            distance_surface,
-            (self.distance_x - distance_surface.get_width(), self.distance_y),
-        )
-
-        # Best score display (below distance)
+        # Best score display
         best_text = f"BEST SCORE: {high_score}"
         best_surface = self.font_small.render(best_text, True, UI_HIGHLIGHT)
         surface.blit(
             best_surface,
-            (self.distance_x - best_surface.get_width(), self.distance_y + 35),
-        )
-
-        # Difficulty indicator
-        diff_text = f"LVL {difficulty}"
-        diff_surface = self.font_medium.render(diff_text, True, UI_HIGHLIGHT)
-        surface.blit(
-            diff_surface, (self.screen_width // 2 - diff_surface.get_width() // 2, 20)
+            (self.best_score_x - best_surface.get_width(), self.best_score_y),
         )
 
         # High score (if beating it)
@@ -339,7 +323,7 @@ class MainMenu:
         # Fonts
         self.font_title = pygame.font.Font(None, 96)
         self.font_subtitle = pygame.font.Font(None, 36)
-        self.font_button = pygame.font.Font(None, 40)
+        self.font_button = pygame.font.Font(None, 30)
 
         # Buttons
         button_width = 250
@@ -499,6 +483,7 @@ class PauseMenu:
 
         self.font_title = pygame.font.Font(None, 72)
         self.font_button = pygame.font.Font(None, 42)
+        self.font_option = pygame.font.Font(None, 32)
 
         button_width = 220
         button_height = 55
@@ -506,20 +491,31 @@ class PauseMenu:
 
         self.buttons = {
             "resume": Button(
-                button_x, 350, button_width, button_height, "RESUME", self.font_button
+                button_x, 420, button_width, button_height, "RESUME", self.font_button
             ),
             "restart": Button(
-                button_x, 420, button_width, button_height, "RESTART", self.font_button
+                button_x, 490, button_width, button_height, "RESTART", self.font_button
             ),
             "menu": Button(
                 button_x,
-                490,
+                560,
                 button_width,
                 button_height,
                 "MAIN MENU",
                 self.font_button,
             ),
         }
+
+        # Volume controls
+        self.music_volume = MUSIC_VOLUME
+        self.sfx_volume = SFX_VOLUME
+
+        # Volume control buttons
+        self.music_down = Button(button_x - 100, 280, 40, 35, "-", self.font_option)
+        self.music_up = Button(button_x + 100, 280, 40, 35, "+", self.font_option)
+
+        self.sfx_down = Button(button_x - 100, 340, 40, 35, "-", self.font_option)
+        self.sfx_up = Button(button_x + 100, 340, 40, 35, "+", self.font_option)
 
         # Semi-transparent overlay
         self.overlay = pygame.Surface((screen_width, screen_height), pygame.SRCALPHA)
@@ -530,6 +526,18 @@ class PauseMenu:
         for name, button in self.buttons.items():
             if button.update(mouse_pos, mouse_pressed):
                 return name
+
+        # Volume controls
+        if self.music_down.update(mouse_pos, mouse_pressed):
+            self.music_volume = max(0, self.music_volume - 0.1)
+        if self.music_up.update(mouse_pos, mouse_pressed):
+            self.music_volume = min(1, self.music_volume + 0.1)
+
+        if self.sfx_down.update(mouse_pos, mouse_pressed):
+            self.sfx_volume = max(0, self.sfx_volume - 0.1)
+        if self.sfx_up.update(mouse_pos, mouse_pressed):
+            self.sfx_volume = min(1, self.sfx_volume + 0.1)
+
         return None
 
     def draw(self, surface):
@@ -544,9 +552,73 @@ class PauseMenu:
             self.font_title,
             WHITE,
             self.screen_width // 2,
-            250,
+            180,
             center=True,
             shadow=True,
+        )
+
+        # Music volume
+        draw_text(
+            surface,
+            "Music:",
+            self.font_option,
+            WHITE,
+            self.screen_width // 2 - 150,
+            280,
+            center=True,
+        )
+        self.music_down.draw(surface)
+        self.music_up.draw(surface)
+
+        # Music volume bar
+        bar_rect = pygame.Rect(self.screen_width // 2 - 55, 270, 110, 20)
+        pygame.draw.rect(surface, DARK_GRAY, bar_rect, border_radius=5)
+        fill_width = int(110 * self.music_volume)
+        if fill_width > 0:
+            fill_rect = pygame.Rect(self.screen_width // 2 - 55, 270, fill_width, 20)
+            pygame.draw.rect(surface, UI_ACCENT, fill_rect, border_radius=5)
+        pygame.draw.rect(surface, WHITE, bar_rect, 2, border_radius=5)
+
+        draw_text(
+            surface,
+            f"{int(self.music_volume * 100)}%",
+            self.font_option,
+            WHITE,
+            self.screen_width // 2,
+            280,
+            center=True,
+        )
+
+        # SFX volume
+        draw_text(
+            surface,
+            "SFX:",
+            self.font_option,
+            WHITE,
+            self.screen_width // 2 - 150,
+            340,
+            center=True,
+        )
+        self.sfx_down.draw(surface)
+        self.sfx_up.draw(surface)
+
+        # SFX volume bar
+        bar_rect = pygame.Rect(self.screen_width // 2 - 55, 330, 110, 20)
+        pygame.draw.rect(surface, DARK_GRAY, bar_rect, border_radius=5)
+        fill_width = int(110 * self.sfx_volume)
+        if fill_width > 0:
+            fill_rect = pygame.Rect(self.screen_width // 2 - 55, 330, fill_width, 20)
+            pygame.draw.rect(surface, UI_ACCENT, fill_rect, border_radius=5)
+        pygame.draw.rect(surface, WHITE, bar_rect, 2, border_radius=5)
+
+        draw_text(
+            surface,
+            f"{int(self.sfx_volume * 100)}%",
+            self.font_option,
+            WHITE,
+            self.screen_width // 2,
+            340,
+            center=True,
         )
 
         # Buttons
@@ -566,7 +638,7 @@ class GameOverScreen:
 
         self.font_title = pygame.font.Font(None, 96)
         self.font_score = pygame.font.Font(None, 48)
-        self.font_button = pygame.font.Font(None, 42)
+        self.font_button = pygame.font.Font(None, 30)
 
         button_width = 220
         button_height = 55
@@ -607,15 +679,13 @@ class GameOverScreen:
         self.final_score = 0
         self.high_score = 0
         self.is_new_record = False
-        self.distance = 0
         self.coins = 0
 
-    def set_data(self, score, high_score, distance, coins):
+    def set_data(self, score, high_score, coins):
         """Set the game over data"""
         self.final_score = score if score is not None else 0
         self.high_score = high_score if high_score is not None else 0
         self.is_new_record = self.final_score > self.high_score
-        self.distance = distance if distance is not None else 0
         self.coins = coins if coins is not None else 0
 
     def update(self, mouse_pos, mouse_pressed):
@@ -672,21 +742,11 @@ class GameOverScreen:
 
         draw_text(
             surface,
-            f"Distance: {int(self.distance or 0)}m",
-            self.font_score,
-            LIGHT_GRAY,
-            self.screen_width // 2,
-            stats_y + stats_spacing,
-            center=True,
-        )
-
-        draw_text(
-            surface,
             f"Coins Collected: {int(self.coins)}",
             self.font_score,
             COIN_COLOR,
             self.screen_width // 2,
-            stats_y + stats_spacing * 2,
+            stats_y + stats_spacing,
             center=True,
         )
 
@@ -698,7 +758,7 @@ class GameOverScreen:
             self.font_score,
             YELLOW,
             self.screen_width // 2,
-            stats_y + stats_spacing * 3,
+            stats_y + stats_spacing * 2,
             center=True,
             shadow=True,
         )
@@ -733,7 +793,7 @@ class LeaderboardScreen:
         Set leaderboard entries
 
         Args:
-            entries: List of (name, score, distance) tuples
+            entries: List of (name, score) tuples
         """
         self.entries = entries[:MAX_LEADERBOARD_ENTRIES]
 
@@ -762,11 +822,8 @@ class LeaderboardScreen:
         # Column headers
         headers_y = 150
         draw_text(surface, "RANK", self.font_entry, GRAY, 150, headers_y, center=True)
-        draw_text(surface, "PLAYER", self.font_entry, GRAY, 350, headers_y, center=True)
-        draw_text(surface, "SCORE", self.font_entry, GRAY, 600, headers_y, center=True)
-        draw_text(
-            surface, "DISTANCE", self.font_entry, GRAY, 850, headers_y, center=True
-        )
+        draw_text(surface, "PLAYER", self.font_entry, GRAY, 400, headers_y, center=True)
+        draw_text(surface, "SCORE", self.font_entry, GRAY, 700, headers_y, center=True)
 
         # Separator line
         pygame.draw.line(
@@ -786,7 +843,6 @@ class LeaderboardScreen:
                 rank = i + 1
                 name = entry.get("name", "Player")
                 score = entry.get("score", 0)
-                distance = entry.get("distance", 0)
 
                 # Highlight top 3
                 if rank == 1:
@@ -803,18 +859,9 @@ class LeaderboardScreen:
                 draw_text(
                     surface, f"#{rank}", self.font_entry, color, 150, y, center=True
                 )
-                draw_text(surface, name, self.font_entry, color, 350, y, center=True)
+                draw_text(surface, name, self.font_entry, color, 400, y, center=True)
                 draw_text(
-                    surface, str(score), self.font_entry, color, 600, y, center=True
-                )
-                draw_text(
-                    surface,
-                    f"{int(distance)}m",
-                    self.font_entry,
-                    color,
-                    850,
-                    y,
-                    center=True,
+                    surface, str(score), self.font_entry, color, 700, y, center=True
                 )
         else:
             draw_text(
@@ -969,7 +1016,7 @@ class SettingsScreen:
 
         controls = [
             "Jump: SPACE or W or UP",
-            "Shoot: LEFT CLICK or X (10 bullets, regenerates)",
+            "Shoot: LEFT CLICK or X (5 bullets, regenerates)",
             "Pause: ESC or P",
         ]
 
@@ -1082,7 +1129,7 @@ class TutorialScreen:
         # Tips
         tips_y = 520
         tips = [
-            "You have 10 bullets • Ammo regenerates over time",
+            "You have 5 bullets • Ammo regenerates over time",
             "Jump to avoid obstacles • Shoot strategically to survive!",
         ]
 
