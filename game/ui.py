@@ -1018,13 +1018,6 @@ class TutorialScreen:
             self.blink_timer = 0
             self.show_prompt = not self.show_prompt
 
-    def check_input(self, events):
-        """Check if any key or mouse button was pressed to continue"""
-        for event in events:
-            if event.type == pygame.KEYDOWN or event.type == pygame.MOUSEBUTTONDOWN:
-                return True
-        return False
-
     def draw(self, surface):
         """Draw the tutorial screen"""
         # Dark overlay

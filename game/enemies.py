@@ -169,66 +169,6 @@ class Enemy(pygame.sprite.Sprite):
         surface.blit(self.image, (screen_x, screen_y + bob_offset))
 
 
-class FlyingEnemy(Enemy):
-    """
-    Flying enemy that moves in a sine wave pattern
-    """
-
-    def __init__(self, x, y):
-        super().__init__(x, y)
-
-        self.start_y = y
-        self.amplitude = 50  # Height of sine wave
-        self.frequency = 0.02  # Speed of oscillation
-        self.time = random.uniform(0, math.pi * 2)  # Random start phase
-
-        # Faster and more damage
-        self.speed = ENEMY_SPEED * 1.5
-        self.damage = ENEMY_DAMAGE * 1.2
-
-        # Recreate with different color
-        self.base_image = self._create_flying_surface()
-        self.image = self.base_image
-
-    def _create_flying_surface(self):
-        """Create flying enemy surface with wings"""
-        surface = pygame.Surface((self.width + 20, self.height), pygame.SRCALPHA)
-
-        # Wings
-        wing_color = (200, 100, 200)
-        pygame.draw.ellipse(surface, wing_color, (0, 5, 15, 25))
-        pygame.draw.ellipse(surface, wing_color, (self.width + 5, 5, 15, 25))
-
-        # Body
-        body_rect = pygame.Rect(10, 0, self.width, self.height)
-        pygame.draw.ellipse(surface, FLYING_ENEMY_COLOR, body_rect)
-
-        # Eyes
-        eye_y = self.height // 2
-        pygame.draw.circle(surface, WHITE, (10 + self.width // 3, eye_y), 5)
-        pygame.draw.circle(surface, WHITE, (10 + 2 * self.width // 3, eye_y), 5)
-        pygame.draw.circle(surface, BLACK, (10 + self.width // 3 + 1, eye_y), 2)
-        pygame.draw.circle(surface, BLACK, (10 + 2 * self.width // 3 + 1, eye_y), 2)
-
-        return surface
-
-    def update(self, player=None, platforms=None):
-        """Update with sine wave movement"""
-        if self.is_dead:
-            return
-
-        # Horizontal movement
-        self.rect.x += self.velocity_x * self.direction
-
-        # Sine wave vertical movement
-        self.time += self.frequency
-        self.rect.y = self.start_y + math.sin(self.time) * self.amplitude
-
-        # Reverse at patrol limits
-        if abs(self.rect.x - self.start_x) > self.patrol_range * 2:
-            self.direction *= -1
-
-
 class ChaserEnemy(Enemy):
     """
     Enemy that chases the player when in range

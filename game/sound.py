@@ -84,44 +84,6 @@ class SoundManager:
                 sound.set_volume(self.sfx_volume)
             sound.play()
 
-    def play_music(self, path, loops=-1, fade_in=0):
-        """
-        Play background music
-
-        Args:
-            path: Path to music file
-            loops: Number of times to loop (-1 for infinite)
-            fade_in: Fade in time in milliseconds
-        """
-        if os.path.exists(path):
-            try:
-                pygame.mixer.music.load(path)
-                pygame.mixer.music.set_volume(self.music_volume)
-
-                if fade_in > 0:
-                    pygame.mixer.music.play(loops, fade_ms=fade_in)
-                else:
-                    pygame.mixer.music.play(loops)
-
-                self.current_music = path
-                self.music_paused = False
-            except pygame.error as e:
-                print(f"Could not load music {path}: {e}")
-
-    def stop_music(self, fade_out=0):
-        """
-        Stop the current music
-
-        Args:
-            fade_out: Fade out time in milliseconds
-        """
-        if fade_out > 0:
-            pygame.mixer.music.fadeout(fade_out)
-        else:
-            pygame.mixer.music.stop()
-
-        self.current_music = None
-
     def pause_music(self):
         """Pause the current music"""
         pygame.mixer.music.pause()
@@ -131,13 +93,6 @@ class SoundManager:
         """Unpause the current music"""
         pygame.mixer.music.unpause()
         self.music_paused = False
-
-    def toggle_music(self):
-        """Toggle music pause state"""
-        if self.music_paused:
-            self.unpause_music()
-        else:
-            self.pause_music()
 
     def set_music_volume(self, volume):
         """
@@ -162,10 +117,6 @@ class SoundManager:
         for sound in self.sounds.values():
             if sound:
                 sound.set_volume(self.sfx_volume)
-
-    def is_music_playing(self):
-        """Check if music is currently playing"""
-        return pygame.mixer.music.get_busy() and not self.music_paused
 
     def create_procedural_sounds(self):
         """

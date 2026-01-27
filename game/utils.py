@@ -9,93 +9,6 @@ import random
 from game.settings import *
 
 
-def load_image(path, scale=None, colorkey=None):
-    """
-    Load an image from file with optional scaling and transparency
-
-    Args:
-        path: Path to the image file
-        scale: Tuple (width, height) to scale to, or None
-        colorkey: Color to use as transparency, or -1 for top-left pixel
-
-    Returns:
-        pygame.Surface: The loaded and processed image
-    """
-    try:
-        image = pygame.image.load(path).convert_alpha()
-        if scale:
-            image = pygame.transform.scale(image, scale)
-        if colorkey is not None:
-            if colorkey == -1:
-                colorkey = image.get_at((0, 0))
-            image.set_colorkey(colorkey)
-        return image
-    except pygame.error as e:
-        print(f"Unable to load image: {path}")
-        print(e)
-        # Return a placeholder surface
-        surface = pygame.Surface((32, 32))
-        surface.fill(PURPLE)
-        return surface
-
-
-def create_placeholder_surface(width, height, color, border_color=None, border_width=2):
-    """
-    Create a simple colored surface (used when sprites aren't available)
-
-    Args:
-        width: Surface width
-        height: Surface height
-        color: Fill color
-        border_color: Optional border color
-        border_width: Border width in pixels
-
-    Returns:
-        pygame.Surface: The created surface
-    """
-    surface = pygame.Surface((width, height), pygame.SRCALPHA)
-    surface.fill(color)
-
-    if border_color:
-        pygame.draw.rect(surface, border_color, surface.get_rect(), border_width)
-
-    return surface
-
-
-def create_gradient_surface(width, height, color1, color2, vertical=True):
-    """
-    Create a gradient surface between two colors
-
-    Args:
-        width: Surface width
-        height: Surface height
-        color1: Starting color
-        color2: Ending color
-        vertical: True for vertical gradient, False for horizontal
-
-    Returns:
-        pygame.Surface: The gradient surface
-    """
-    surface = pygame.Surface((width, height))
-
-    if vertical:
-        for y in range(height):
-            ratio = y / height
-            r = int(color1[0] * (1 - ratio) + color2[0] * ratio)
-            g = int(color1[1] * (1 - ratio) + color2[1] * ratio)
-            b = int(color1[2] * (1 - ratio) + color2[2] * ratio)
-            pygame.draw.line(surface, (r, g, b), (0, y), (width, y))
-    else:
-        for x in range(width):
-            ratio = x / width
-            r = int(color1[0] * (1 - ratio) + color2[0] * ratio)
-            g = int(color1[1] * (1 - ratio) + color2[1] * ratio)
-            b = int(color1[2] * (1 - ratio) + color2[2] * ratio)
-            pygame.draw.line(surface, (r, g, b), (x, 0), (x, height))
-
-    return surface
-
-
 def clamp(value, min_val, max_val):
     """Clamp a value between min and max"""
     return max(min_val, min(value, max_val))
@@ -104,11 +17,6 @@ def clamp(value, min_val, max_val):
 def lerp(start, end, t):
     """Linear interpolation between start and end"""
     return start + (end - start) * t
-
-
-def distance(pos1, pos2):
-    """Calculate distance between two points"""
-    return math.sqrt((pos2[0] - pos1[0]) ** 2 + (pos2[1] - pos1[1]) ** 2)
 
 
 def draw_text(
@@ -143,49 +51,6 @@ def draw_text(
 
     surface.blit(text_surface, text_rect)
     return text_rect
-
-
-class Timer:
-    """Simple timer class for tracking time-based events"""
-
-    def __init__(self, duration):
-        """
-        Initialize timer
-
-        Args:
-            duration: Duration in milliseconds
-        """
-        self.duration = duration
-        self.start_time = 0
-        self.active = False
-
-    def start(self):
-        """Start the timer"""
-        self.start_time = pygame.time.get_ticks()
-        self.active = True
-
-    def stop(self):
-        """Stop the timer"""
-        self.active = False
-
-    def is_finished(self):
-        """Check if timer has finished"""
-        if not self.active:
-            return True
-        return pygame.time.get_ticks() - self.start_time >= self.duration
-
-    def get_elapsed(self):
-        """Get elapsed time in milliseconds"""
-        if not self.active:
-            return 0
-        return pygame.time.get_ticks() - self.start_time
-
-    def get_remaining(self):
-        """Get remaining time in milliseconds"""
-        if not self.active:
-            return 0
-        remaining = self.duration - (pygame.time.get_ticks() - self.start_time)
-        return max(0, remaining)
 
 
 class Animation:

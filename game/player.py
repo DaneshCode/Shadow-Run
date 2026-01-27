@@ -6,7 +6,7 @@ Contains the Player class with movement, physics, and animation handling
 import pygame
 import os
 from game.settings import *
-from game.utils import Animation, create_placeholder_surface, clamp
+from game.utils import Animation, clamp
 
 
 class Player(pygame.sprite.Sprite):

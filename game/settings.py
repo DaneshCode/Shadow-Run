@@ -92,10 +92,6 @@ AUTO_RUN_SPEED = 4
 # PLATFORM SETTINGS - Dark Theme
 # =============================================================================
 PLATFORM_HEIGHT = 32
-MIN_PLATFORM_WIDTH = 100
-MAX_PLATFORM_WIDTH = 300
-PLATFORM_GAP_MIN = 150
-PLATFORM_GAP_MAX = 350
 PLATFORM_COLOR = (35, 25, 20)
 PLATFORM_TOP_COLOR = (50, 40, 35)
 GROUND_HEIGHT = 100
@@ -109,7 +105,6 @@ ENEMY_SPEED = 2
 ENEMY_DAMAGE = 20
 ENEMY_COLOR = (120, 30, 30)
 ENEMY_SPAWN_DISTANCE = 800  # Distance ahead of player to spawn enemies
-FLYING_ENEMY_COLOR = (80, 30, 80)
 FAST_ENEMY_COLOR = (150, 50, 30)
 
 # =============================================================================
@@ -193,10 +188,6 @@ SWARM_CHANCE_MAX = 0.25  # 25% chance of swarm spawn at max difficulty
 # =============================================================================
 DIFFICULTY_INCREASE_INTERVAL = DIFFICULTY_MILESTONE_INTERVAL
 MAX_DIFFICULTY_LEVEL = 10
-ENEMY_SPEED_MULTIPLIER = 1.15
-ENEMY_SPAWN_RATE_MULTIPLIER = 1.2
-PLATFORM_GAP_MULTIPLIER = 1.05
-GAME_SPEED_MULTIPLIER = 1.15
 
 # =============================================================================
 # GAME STATES

@@ -5,4 +5,4 @@ A professional 2D endless platformer game built with Pygame
 """
 
 __version__ = "1.0.0"
-__author__ = "Game Developer"
+__author__ = "Danesh khodadadzadeh and armin shadkami"

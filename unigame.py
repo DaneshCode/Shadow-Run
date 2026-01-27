@@ -1,11 +1,9 @@
-#!/usr/bin/env python3
 """
-UGME - Ultimate Game Made Easy
+ shadow-run
 ===============================
 A professional 2D endless platformer game built with Pygame
 
 Controls:
-    - ARROW KEYS or WASD: Move
     - SPACE or UP or W: Jump
     - ESC or P: Pause
 

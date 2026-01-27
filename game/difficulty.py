@@ -163,13 +163,6 @@ class DifficultyManager:
         """Cubic ease-out: faster start, slower end"""
         return 1.0 - pow(1.0 - t, 3)
 
-    def _ease_in_out_quad(self, t):
-        """Quadratic ease-in-out: smooth start and end"""
-        if t < 0.5:
-            return 2.0 * t * t
-        else:
-            return 1.0 - pow(-2.0 * t + 2.0, 2) / 2.0
-
     # =========================================================================
     # PUBLIC GETTERS - Use these to get current difficulty values
     # =========================================================================
@@ -331,21 +324,3 @@ class DifficultyManager:
         self.milestone_triggered = False
         self._cached_score = -1
         self._recalculate_difficulty()
-
-    def get_debug_info(self):
-        """
-        Get debugging information about current difficulty state.
-
-        Returns:
-            dict: Dictionary of difficulty values
-        """
-        return {
-            "score": self.score,
-            "difficulty_percent": f"{self.difficulty_percent:.1f}%",
-            "game_speed": f"{self.game_speed:.2f}x",
-            "spawn_interval": f"{self.spawn_interval:.0f}px",
-            "spawn_chance": f"{self.spawn_chance:.1%}",
-            "enemy_speed": f"{self.enemy_speed_multiplier:.2f}x",
-            "enemy_weights": self.get_enemy_weights(),
-            "swarm_chance": f"{self.get_swarm_chance():.1%}",
-        }

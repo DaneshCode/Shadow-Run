@@ -131,60 +131,6 @@ class Camera:
 
         return (offset_x, offset_y)
 
-    def apply(self, rect):
-        """
-        Apply camera offset to a rect for rendering
-
-        Args:
-            rect: pygame.Rect to offset
-
-        Returns:
-            pygame.Rect: New rect with camera offset applied
-        """
-        offset = self.get_offset()
-        return pygame.Rect(
-            rect.x - offset[0], rect.y - offset[1], rect.width, rect.height
-        )
-
-    def world_to_screen(self, world_pos):
-        """
-        Convert world coordinates to screen coordinates
-
-        Args:
-            world_pos: (x, y) tuple in world coordinates
-
-        Returns:
-            tuple: (x, y) in screen coordinates
-        """
-        offset = self.get_offset()
-        return (world_pos[0] - offset[0], world_pos[1] - offset[1])
-
-    def screen_to_world(self, screen_pos):
-        """
-        Convert screen coordinates to world coordinates
-
-        Args:
-            screen_pos: (x, y) tuple in screen coordinates
-
-        Returns:
-            tuple: (x, y) in world coordinates
-        """
-        offset = self.get_offset()
-        return (screen_pos[0] + offset[0], screen_pos[1] + offset[1])
-
-    def is_visible(self, rect):
-        """
-        Check if a rect is visible on screen
-
-        Args:
-            rect: pygame.Rect to check
-
-        Returns:
-            bool: True if rect is at least partially visible
-        """
-        screen_rect = pygame.Rect(self.x, self.y, self.screen_width, self.screen_height)
-        return screen_rect.colliderect(rect)
-
     def reset(self):
         """Reset camera to origin"""
         self.x = 0

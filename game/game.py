@@ -493,10 +493,6 @@ class Game:
             self.world_generator.set_difficulty(self.difficulty_level)
             self.enemy_spawner.set_difficulty(self.difficulty_level)
 
-    def get_current_game_speed(self):
-        """Get the current game speed multiplier"""
-        return self.game_speed
-
     def _game_over(self):
         """Handle game over"""
         self.state = STATE_GAME_OVER
