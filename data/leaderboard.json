@@ -2,6 +2,12 @@
   "entries": [
     {
       "name": "Player",
+      "score": 6230,
+      "distance": 615.78,
+      "coins": 121
+    },
+    {
+      "name": "Player",
       "score": 6013,
       "distance": 598.32,
       "coins": 105
@@ -53,12 +59,6 @@
       "score": 3768,
       "distance": 378.72,
       "coins": 39
-    },
-    {
-      "name": "Player",
-      "score": 3578,
-      "distance": 358.92,
-      "coins": 59
     }
   ]
 }

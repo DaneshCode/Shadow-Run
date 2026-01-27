@@ -85,8 +85,8 @@ class Game:
         # Generate procedural sounds if no audio files exist
         self.sound_manager.create_procedural_sounds()
 
-        # Start background music
-        self.sound_manager.create_procedural_music()
+        # Start professional layered ambient audio (horror + pond ambience mix)
+        self.sound_manager.start_ambient_audio()
 
         # Current game speed multiplier (increases with difficulty)
         self.game_speed = 1.0
@@ -324,6 +324,7 @@ class Game:
                     if self.player.collision_rect.colliderect(proj.rect):
                         if self.player.take_damage(proj.damage):
                             self.sound_manager.play_sound("hurt")
+                            self.sound_manager.pulse_horror_audio()  # Spike horror on damage
                             self.camera.shake(8, 15)
                             self.particle_system.emit(
                                 self.player.rect.centerx,
@@ -358,6 +359,21 @@ class Game:
         # Update particles and effects
         self.particle_system.update()
         self.visual_effects.update()
+
+        # Update dynamic ambient audio based on game state (AAA-style reactive audio)
+        health_percent = self.player.health / PLAYER_MAX_HEALTH
+        enemies_nearby = any(
+            abs(enemy.rect.x - self.player.rect.x) < 400
+            for enemy in self.enemies
+            if not enemy.is_dead
+        )
+        difficulty = (
+            self.difficulty_manager.difficulty_level / 10.0
+        )  # Normalize to 0.1-1.0
+        self.sound_manager.update_danger_level(
+            health_percent, enemies_nearby, difficulty
+        )
+        self.sound_manager.update_ambient_audio(1 / FPS)
 
         # Update distance
         self.distance_traveled = max(0, (self.player.rect.x - self.start_x) / 50)
@@ -405,6 +421,7 @@ class Game:
                     # Take damage
                     if self.player.take_damage(enemy.damage):
                         self.sound_manager.play_sound("hurt")
+                        self.sound_manager.pulse_horror_audio()  # Spike horror on damage
                         self.camera.shake(10, 20)
                         self.visual_effects.flash(RED, 50)
                         self.particle_system.emit(

@@ -41,11 +41,10 @@ from game.game import Game
 def main():
     """Main entry point for the game"""
     print("=" * 60)
-    print("  ENDLESS RUNNER - Ultimate Platformer")
+    print("  SHADOW RUN : endless nightmare")
     print("=" * 60)
     print()
     print("  Controls:")
-    print("    - Arrow Keys or WASD: Move")
     print("    - Space/Up/W: Jump")
     print("    - ESC or P: Pause")
     print()
