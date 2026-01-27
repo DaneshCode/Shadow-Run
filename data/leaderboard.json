@@ -1,0 +1,64 @@
+{
+  "entries": [
+    {
+      "name": "Player",
+      "score": 5204,
+      "distance": 521.66,
+      "coins": 30
+    },
+    {
+      "name": "Player",
+      "score": 4810,
+      "distance": 497.76,
+      "coins": 23
+    },
+    {
+      "name": "Player",
+      "score": 4416,
+      "distance": 442.5,
+      "coins": 31
+    },
+    {
+      "name": "Player",
+      "score": 4017,
+      "distance": 399.1,
+      "coins": 66
+    },
+    {
+      "name": "Player",
+      "score": 3892,
+      "distance": 389.52,
+      "coins": 69
+    },
+    {
+      "name": "Player",
+      "score": 3886,
+      "distance": 395.02,
+      "coins": 62
+    },
+    {
+      "name": "Player",
+      "score": 3768,
+      "distance": 378.72,
+      "coins": 39
+    },
+    {
+      "name": "Player",
+      "score": 3578,
+      "distance": 358.92,
+      "coins": 59
+    },
+    {
+      "name": "Player",
+      "score": 3292,
+      "distance": 333.32,
+      "coins": 124
+    },
+    {
+      "name": "Player",
+      "score": 2710,
+      "distance": 271.12,
+      "coins": 52
+    }
+  ]
+}
