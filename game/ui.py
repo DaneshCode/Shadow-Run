@@ -303,6 +303,22 @@ class HUD:
                 shadow=True,
             )
 
+        # Gravity indicator
+        gravity_y = 90
+        if hasattr(player, "gravity_flipped"):
+            gravity_text = "▲ CEILING" if player.gravity_flipped else "▼ GROUND"
+            gravity_color = PURPLE if player.gravity_flipped else UI_SUCCESS
+            draw_text(
+                surface,
+                gravity_text,
+                self.font_small,
+                gravity_color,
+                self.health_bar_x + self.health_bar_width // 2,
+                gravity_y,
+                center=True,
+                shadow=True,
+            )
+
 
 class MainMenu:
     """
@@ -1094,15 +1110,16 @@ class TutorialScreen:
         )
 
         # Controls section
-        controls_y = 220
+        controls_y = 200
         controls = [
             ("JUMP", "Space  /  W  /  Up Arrow", UI_ACCENT),
+            ("FLIP GRAVITY", "Shift  /  S  /  Down Arrow", PURPLE),
             ("SHOOT", "Left Click  or  X Key", BULLET_COLOR),
             ("PAUSE", "Escape  or  P", LIGHT_GRAY),
         ]
 
         for i, (action, keys, color) in enumerate(controls):
-            y = controls_y + i * 70
+            y = controls_y + i * 60
 
             # Action name
             draw_text(
@@ -1110,7 +1127,7 @@ class TutorialScreen:
                 action,
                 self.font_control,
                 color,
-                self.screen_width // 2 - 120,
+                self.screen_width // 2 - 140,
                 y,
                 center=True,
             )
@@ -1127,10 +1144,11 @@ class TutorialScreen:
             )
 
         # Tips
-        tips_y = 520
+        tips_y = 480
         tips = [
+            "FLIP GRAVITY to switch between ground and ceiling!",
+            "Enemies spawn on both surfaces • Time your flips wisely",
             "You have 5 bullets • Ammo regenerates over time",
-            "Jump to avoid obstacles • Shoot strategically to survive!",
         ]
 
         for i, tip in enumerate(tips):
@@ -1140,7 +1158,7 @@ class TutorialScreen:
                 self.font_hint,
                 LIGHT_GRAY,
                 self.screen_width // 2,
-                tips_y + i * 35,
+                tips_y + i * 30,
                 center=True,
             )
 
@@ -1152,7 +1170,7 @@ class TutorialScreen:
                 self.font_subtitle,
                 WHITE,
                 self.screen_width // 2,
-                self.screen_height - 80,
+                self.screen_height - 60,
                 center=True,
                 shadow=True,
             )

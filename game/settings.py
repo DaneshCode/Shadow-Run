@@ -57,6 +57,13 @@ GRAVITY = 0.8
 MAX_FALL_SPEED = 18
 FRICTION = 0.85
 
+# Gravity flip settings
+GRAVITY_FLIP_SPEED = 25  # Speed of transition when flipping gravity
+GRAVITY_FLIP_COOLDOWN = 100  # Minimum ms between flips to prevent spam
+
+# Ceiling settings (mirror of ground)
+CEILING_HEIGHT = 100  # Same as ground height
+
 # =============================================================================
 # PLAYER SETTINGS
 # =============================================================================
@@ -106,6 +113,11 @@ ENEMY_DAMAGE = 20
 ENEMY_COLOR = (120, 30, 30)
 ENEMY_SPAWN_DISTANCE = 800  # Distance ahead of player to spawn enemies
 FAST_ENEMY_COLOR = (150, 50, 30)
+
+# Ceiling enemy settings
+CEILING_ENEMY_COLOR = (80, 40, 120)  # Purple-ish for ceiling enemies
+FLYING_ENEMY_COLOR = (60, 100, 80)  # Green-ish for flying enemies
+FLYING_ENEMY_SPEED = 3  # Slightly faster than ground enemies
 
 # =============================================================================
 # COLLECTIBLE SETTINGS

@@ -144,6 +144,72 @@ class Ground(pygame.sprite.Sprite):
         surface.blit(self.image, (screen_x, screen_y))
 
 
+class Ceiling(pygame.sprite.Sprite):
+    """
+    Ceiling segment for gravity-flip gameplay.
+    Player can run on this surface when gravity is inverted.
+    """
+
+    def __init__(self, x, y, width):
+        """
+        Initialize ceiling segment
+
+        Args:
+            x: X position
+            y: Y position (usually top of screen)
+            width: Ceiling width
+        """
+        super().__init__()
+
+        self.image = self._create_ceiling_surface(width, CEILING_HEIGHT)
+        self.rect = self.image.get_rect()
+        self.rect.x = x
+        self.rect.y = y
+
+    def _create_ceiling_surface(self, width, height):
+        """Create dark horror-themed ceiling surface"""
+        surface = pygame.Surface((width, height))
+
+        # Dark ceiling gradient (stone/cave roof)
+        for y in range(height):
+            ratio = y / height
+            r = int(25 * (0.7 + ratio * 0.3))
+            g = int(20 * (0.7 + ratio * 0.3))
+            b = int(30 * (0.7 + ratio * 0.3))
+            pygame.draw.line(surface, (r, g, b), (0, y), (width, y))
+
+        # Bottom edge (the surface player runs on when gravity flipped)
+        pygame.draw.rect(surface, PLATFORM_TOP_COLOR, (0, height - 12, width, 12))
+
+        # Stalactites/dripping details
+        for x in range(0, width, 25):
+            if random.random() > 0.5:
+                stalactite_height = random.randint(3, 8)
+                pygame.draw.polygon(
+                    surface,
+                    (35, 30, 40),
+                    [
+                        (x, height),
+                        (x - 4, height - stalactite_height),
+                        (x + 4, height - stalactite_height),
+                    ],
+                )
+
+        # Dark spots/cracks
+        for _ in range(width // 40):
+            dx = random.randint(0, width)
+            dy = random.randint(10, height - 20)
+            pygame.draw.circle(surface, (15, 12, 18), (dx, dy), random.randint(2, 5))
+
+        return surface
+
+    def draw(self, surface, camera_offset=(0, 0)):
+        """Draw the ceiling"""
+        screen_x = self.rect.x - camera_offset[0]
+        screen_y = self.rect.y - camera_offset[1]
+        surface.blit(self.image, (screen_x, screen_y))
+
+
 class WorldGenerator:
     """
     Procedural world generator for endless gameplay
@@ -173,6 +239,9 @@ class WorldGenerator:
         self.ground_segment_width = 800
         self.last_ground_x = 0
 
+        # Ceiling segments (for gravity flip mechanic)
+        self.last_ceiling_x = 0
+
         # Track what's been generated
         self.generated_until_x = 0
 
@@ -186,7 +255,7 @@ class WorldGenerator:
         self.difficulty = min(difficulty, MAX_DIFFICULTY_LEVEL)
         self.gap_multiplier = 1 + (difficulty - 1) * 0.05
 
-    def generate_initial_world(self, platforms, grounds, coins, enemies):
+    def generate_initial_world(self, platforms, grounds, coins, enemies, ceilings=None):
         """
         Generate the initial world layout
 
@@ -195,8 +264,9 @@ class WorldGenerator:
             grounds: Sprite group for ground
             coins: Sprite group for coins
             enemies: Sprite group for enemies
+            ceilings: Sprite group for ceiling (gravity flip mechanic)
         """
-        # Create initial ground - this is now the only surface
+        # Create initial ground
         for x in range(
             -self.ground_segment_width, self.screen_width * 2, self.ground_segment_width
         ):
@@ -206,7 +276,17 @@ class WorldGenerator:
             grounds.add(ground)
             self.last_ground_x = x + self.ground_segment_width
 
-        # No elevated platforms - pure ground-based endless runner
+        # Create initial ceiling for gravity flip
+        if ceilings is not None:
+            for x in range(
+                -self.ground_segment_width,
+                self.screen_width * 2,
+                self.ground_segment_width,
+            ):
+                ceiling = Ceiling(x, 0, self.ground_segment_width)
+                ceilings.add(ceiling)
+                self.last_ceiling_x = x + self.ground_segment_width
+
         self.generated_until_x = self.screen_width * 2
 
     def generate_ground_ahead(self, grounds, until_x):
@@ -226,7 +306,24 @@ class WorldGenerator:
             grounds.add(ground)
             self.last_ground_x += self.ground_segment_width
 
-    def update(self, player_x, platforms, grounds, coins, enemies):
+    def generate_ceiling_ahead(self, ceilings, until_x):
+        """
+        Generate ceiling segments ahead
+
+        Args:
+            ceilings: Sprite group for ceiling
+            until_x: Generate until this x position
+        """
+        while self.last_ceiling_x < until_x:
+            ceiling = Ceiling(
+                self.last_ceiling_x,
+                0,
+                self.ground_segment_width,
+            )
+            ceilings.add(ceiling)
+            self.last_ceiling_x += self.ground_segment_width
+
+    def update(self, player_x, platforms, grounds, coins, enemies, ceilings=None):
         """
         Update world generation based on player position
 
@@ -236,13 +333,17 @@ class WorldGenerator:
             grounds: Sprite group for ground
             coins: Sprite group for coins
             enemies: Sprite group for enemies
+            ceilings: Sprite group for ceiling (gravity flip mechanic)
         """
         # Generate more world when player gets close to the edge
         look_ahead = self.screen_width * 2
 
         if player_x + look_ahead > self.generated_until_x:
-            # Only generate ground - no elevated platforms in ground-based runner
+            # Generate ground and ceiling
             self.generate_ground_ahead(grounds, player_x + look_ahead)
+
+            if ceilings is not None:
+                self.generate_ceiling_ahead(ceilings, player_x + look_ahead)
 
             self.generated_until_x = player_x + look_ahead
 
@@ -253,11 +354,17 @@ class WorldGenerator:
             if ground.rect.right < cleanup_x:
                 ground.kill()
 
+        if ceilings is not None:
+            for ceiling in list(ceilings):
+                if ceiling.rect.right < cleanup_x:
+                    ceiling.kill()
+
     def reset(self):
         """Reset the generator to initial state"""
         self.last_platform_x = 0
         self.last_platform_y = self.screen_height - GROUND_HEIGHT - 100
         self.last_ground_x = 0
+        self.last_ceiling_x = 0
         self.generated_until_x = 0
         self.difficulty = 1
         self.gap_multiplier = 1.0

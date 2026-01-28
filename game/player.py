@@ -69,6 +69,14 @@ class Player(pygame.sprite.Sprite):
         self.can_double_jump = False
         self.double_jump_available = False
 
+        # Gravity flip mechanics
+        self.gravity_flipped = False  # False = ground, True = ceiling
+        self.gravity_direction = 1  # 1 = down, -1 = up
+        self.flip_transition = 0  # 0 = no transition, counts up during flip
+        self.flip_transition_max = 15  # Frames for flip transition
+        self.last_flip_time = 0  # For cooldown
+        self.on_ceiling = False  # Whether touching ceiling
+
         # Shooting mechanics
         self.bullets = pygame.sprite.Group()
         self.last_shot_time = 0
@@ -226,25 +234,81 @@ class Player(pygame.sprite.Sprite):
         if keys[pygame.K_SPACE] or keys[pygame.K_UP] or keys[pygame.K_w]:
             self.jump()
 
+        # Gravity flip with Shift or S key
+        if (
+            keys[pygame.K_LSHIFT]
+            or keys[pygame.K_RSHIFT]
+            or keys[pygame.K_s]
+            or keys[pygame.K_DOWN]
+        ):
+            self.flip_gravity()
+
     def jump(self):
         """Perform a jump if allowed"""
         if self.is_dead:
             return
 
-        if self.on_ground and self.can_jump:
-            self.velocity_y = PLAYER_JUMP_POWER
+        # Check if grounded (either on ground or ceiling depending on gravity)
+        is_grounded = self.on_ground if not self.gravity_flipped else self.on_ceiling
+
+        if is_grounded and self.can_jump:
+            # Jump direction depends on gravity
+            jump_power = (
+                PLAYER_JUMP_POWER if not self.gravity_flipped else -PLAYER_JUMP_POWER
+            )
+            self.velocity_y = jump_power
             self.on_ground = False
+            self.on_ceiling = False
             self.is_jumping = True
             self.can_jump = False
             self.double_jump_available = self.can_double_jump
             return True
-        elif self.can_double_jump and self.double_jump_available and not self.on_ground:
+        elif self.can_double_jump and self.double_jump_available and not is_grounded:
             # Double jump
-            self.velocity_y = PLAYER_JUMP_POWER * 0.85
+            jump_power = (
+                PLAYER_JUMP_POWER * 0.85
+                if not self.gravity_flipped
+                else -PLAYER_JUMP_POWER * 0.85
+            )
+            self.velocity_y = jump_power
             self.double_jump_available = False
             return True
 
         return False
+
+    def flip_gravity(self):
+        """
+        Flip the gravity direction. Player transitions smoothly between
+        running on ground and running on ceiling.
+        """
+        if self.is_dead:
+            return False
+
+        # Cooldown check
+        current_time = pygame.time.get_ticks()
+        if current_time - self.last_flip_time < GRAVITY_FLIP_COOLDOWN:
+            return False
+
+        # Only flip if not in transition
+        if self.flip_transition > 0:
+            return False
+
+        # Start flip transition
+        self.last_flip_time = current_time
+        self.gravity_flipped = not self.gravity_flipped
+        self.gravity_direction = -1 if self.gravity_flipped else 1
+        self.flip_transition = 1
+
+        # Give initial velocity towards new surface
+        initial_flip_speed = GRAVITY_FLIP_SPEED * self.gravity_direction
+        self.velocity_y = initial_flip_speed
+
+        # No longer grounded
+        self.on_ground = False
+        self.on_ceiling = False
+        self.is_jumping = True
+
+        return True
 
     def release_jump(self):
         """Called when jump key is released"""
@@ -254,12 +318,13 @@ class Player(pygame.sprite.Sprite):
         if self.velocity_y < -5:
             self.velocity_y = -5
 
-    def update(self, platforms):
+    def update(self, platforms, ceiling_platforms=None):
         """
         Update player physics and state
 
         Args:
-            platforms: Sprite group of platforms for collision
+            platforms: Sprite group of ground platforms for collision
+            ceiling_platforms: Sprite group of ceiling platforms for collision
         """
         if self.is_dead:
             return
@@ -277,15 +342,30 @@ class Player(pygame.sprite.Sprite):
         if abs(self.velocity_x) < 0.1:
             self.velocity_x = 0
 
-        # Apply gravity
-        self.velocity_y += GRAVITY
-        self.velocity_y = min(self.velocity_y, MAX_FALL_SPEED)
+        # Apply gravity (direction based on gravity flip state)
+        gravity = GRAVITY * self.gravity_direction
+        self.velocity_y += gravity
 
-        # Update falling state
-        self.is_falling = self.velocity_y > 0 and not self.on_ground
+        # Clamp vertical velocity based on gravity direction
+        if self.gravity_direction > 0:
+            self.velocity_y = min(self.velocity_y, MAX_FALL_SPEED)
+        else:
+            self.velocity_y = max(self.velocity_y, -MAX_FALL_SPEED)
+
+        # Update flip transition
+        if self.flip_transition > 0:
+            self.flip_transition += 1
+            if self.flip_transition >= self.flip_transition_max:
+                self.flip_transition = 0
+
+        # Update falling state (depends on gravity direction)
+        if self.gravity_flipped:
+            self.is_falling = self.velocity_y < 0 and not self.on_ceiling
+        else:
+            self.is_falling = self.velocity_y > 0 and not self.on_ground
 
         # Move and check collisions
-        self._move_and_collide(platforms)
+        self._move_and_collide(platforms, ceiling_platforms)
 
         # Update invincibility
         if self.is_invincible:
@@ -300,58 +380,110 @@ class Player(pygame.sprite.Sprite):
         # Update animation
         self._update_animation()
 
-    def _move_and_collide(self, platforms):
+    def _move_and_collide(self, platforms, ceiling_platforms=None):
         """
-        Move player and handle platform collisions
+        Move player and handle platform collisions for both ground and ceiling
 
         Args:
-            platforms: Sprite group of platforms
+            platforms: Sprite group of ground platforms
+            ceiling_platforms: Sprite group of ceiling platforms
         """
+        if ceiling_platforms is None:
+            ceiling_platforms = []
+
+        # Combine all platforms for horizontal collision
+        all_platforms = list(platforms) + list(ceiling_platforms)
+
         # Store old position
         old_x = self.rect.x
         old_y = self.rect.y
 
+        # Update collision rect position based on gravity
+        if self.gravity_flipped:
+            self.collision_rect.midtop = self.rect.midtop
+        else:
+            self.collision_rect.midbottom = self.rect.midbottom
+
         # Move horizontally
         self.rect.x += self.velocity_x
-        self.collision_rect.midbottom = self.rect.midbottom
+        if self.gravity_flipped:
+            self.collision_rect.midtop = self.rect.midtop
+        else:
+            self.collision_rect.midbottom = self.rect.midbottom
 
-        # Check horizontal collisions
-        for platform in platforms:
+        # Check horizontal collisions with all platforms
+        for platform in all_platforms:
             if self.collision_rect.colliderect(platform.rect):
                 if self.velocity_x > 0:  # Moving right
                     self.collision_rect.right = platform.rect.left
                 elif self.velocity_x < 0:  # Moving left
                     self.collision_rect.left = platform.rect.right
 
-                self.rect.midbottom = self.collision_rect.midbottom
+                if self.gravity_flipped:
+                    self.rect.midtop = self.collision_rect.midtop
+                else:
+                    self.rect.midbottom = self.collision_rect.midbottom
                 self.velocity_x = 0
 
         # Move vertically
         self.rect.y += self.velocity_y
-        self.collision_rect.midbottom = self.rect.midbottom
+        if self.gravity_flipped:
+            self.collision_rect.midtop = self.rect.midtop
+        else:
+            self.collision_rect.midbottom = self.rect.midbottom
 
-        # Check vertical collisions
+        # Check vertical collisions - ground platforms
         self.on_ground = False
-
         for platform in platforms:
             if self.collision_rect.colliderect(platform.rect):
-                if self.velocity_y > 0:  # Falling
+                if self.velocity_y > 0:  # Falling down
                     self.collision_rect.bottom = platform.rect.top
                     self.on_ground = True
                     self.is_jumping = False
                     self.velocity_y = 0
-                elif self.velocity_y < 0:  # Rising
+                elif self.velocity_y < 0:  # Rising up
                     self.collision_rect.top = platform.rect.bottom
                     self.velocity_y = 0
 
-                self.rect.midbottom = self.collision_rect.midbottom
+                if self.gravity_flipped:
+                    self.rect.midtop = self.collision_rect.midtop
+                else:
+                    self.rect.midbottom = self.collision_rect.midbottom
+
+        # Check vertical collisions - ceiling platforms
+        self.on_ceiling = False
+        for platform in ceiling_platforms:
+            if self.collision_rect.colliderect(platform.rect):
+                if self.velocity_y < 0:  # Moving up (falling when gravity flipped)
+                    self.collision_rect.top = platform.rect.bottom
+                    self.on_ceiling = True
+                    self.is_jumping = False
+                    self.velocity_y = 0
+                elif self.velocity_y > 0:  # Moving down
+                    self.collision_rect.bottom = platform.rect.top
+                    self.velocity_y = 0
+
+                if self.gravity_flipped:
+                    self.rect.midtop = self.collision_rect.midtop
+                else:
+                    self.rect.midbottom = self.collision_rect.midbottom
 
     def _update_animation(self):
         """Update the current animation based on player state"""
-        # Determine which animation to play
-        if self.is_jumping or (self.velocity_y < 0 and not self.on_ground):
+        # Determine which animation to play based on gravity state
+        is_grounded = self.on_ground if not self.gravity_flipped else self.on_ceiling
+
+        # For flipped gravity, jumping means moving up (positive y when gravity flipped)
+        if self.gravity_flipped:
+            is_jumping_motion = self.velocity_y > 0 and not is_grounded
+            is_falling_motion = self.velocity_y < 0 and not is_grounded
+        else:
+            is_jumping_motion = self.velocity_y < 0 and not is_grounded
+            is_falling_motion = self.velocity_y > 0 and not is_grounded
+
+        if self.is_jumping or is_jumping_motion:
             new_animation = "jump"
-        elif self.is_falling:
+        elif self.is_falling or is_falling_motion:
             new_animation = "fall"
         elif self.is_running and abs(self.velocity_x) > 0.5:
             new_animation = "walk"
@@ -371,6 +503,10 @@ class Player(pygame.sprite.Sprite):
 
         if not self.facing_right:
             frame = pygame.transform.flip(frame, True, False)
+
+        # Flip vertically if gravity is inverted
+        if self.gravity_flipped:
+            frame = pygame.transform.flip(frame, False, True)
 
         self.image = frame
 
@@ -446,12 +582,19 @@ class Player(pygame.sprite.Sprite):
         self.coins = 0
 
         self.on_ground = False
+        self.on_ceiling = False
         self.is_jumping = False
         self.is_falling = False
         self.is_running = False
         self.is_invincible = False
         self.is_dead = False
         self.visible = True
+
+        # Reset gravity flip state
+        self.gravity_flipped = False
+        self.gravity_direction = 1
+        self.flip_transition = 0
+        self.last_flip_time = 0
 
         self.facing_right = True
         self.current_animation = "idle"
@@ -477,9 +620,16 @@ class Player(pygame.sprite.Sprite):
 
         # Calculate screen position
         screen_x = self.rect.x - camera_offset[0]
-        screen_y = (
-            self.rect.y - camera_offset[1] + 40
-        )  # Offset to align feet with ground
+
+        # Offset depends on gravity state
+        if self.gravity_flipped:
+            screen_y = (
+                self.rect.y - camera_offset[1] - 40
+            )  # Offset for ceiling alignment
+        else:
+            screen_y = (
+                self.rect.y - camera_offset[1] + 40
+            )  # Offset to align feet with ground
 
         # Draw player
         surface.blit(self.image, (screen_x, screen_y))

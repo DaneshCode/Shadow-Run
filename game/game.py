@@ -6,8 +6,16 @@ Main game class that coordinates all game systems
 import pygame
 from game.settings import *
 from game.player import Player
-from game.platforms import Ground, WorldGenerator
-from game.enemies import Enemy, ChaserEnemy, ShooterEnemy, BerserkerEnemy, EnemySpawner
+from game.platforms import Ground, Ceiling, WorldGenerator
+from game.enemies import (
+    Enemy,
+    ChaserEnemy,
+    ShooterEnemy,
+    BerserkerEnemy,
+    CeilingEnemy,
+    FlyingEnemy,
+    EnemySpawner,
+)
 from game.collectibles import Coin, HealthPack, PowerUp, CollectibleSpawner
 from game.difficulty import DifficultyManager
 from game.camera import Camera
@@ -96,7 +104,9 @@ class Game:
         self.all_sprites = pygame.sprite.Group()
         self.platforms = pygame.sprite.Group()
         self.grounds = pygame.sprite.Group()
+        self.ceilings = pygame.sprite.Group()  # Ceiling surfaces for gravity flip
         self.enemies = pygame.sprite.Group()
+        self.ceiling_enemies = pygame.sprite.Group()  # Enemies on ceiling
         self.coins = pygame.sprite.Group()
         self.health_packs = pygame.sprite.Group()
         self.powerups = pygame.sprite.Group()
@@ -123,7 +133,9 @@ class Game:
         # Clear all groups
         self.platforms.empty()
         self.grounds.empty()
+        self.ceilings.empty()
         self.enemies.empty()
+        self.ceiling_enemies.empty()
         self.coins.empty()
         self.health_packs.empty()
         self.powerups.empty()
@@ -135,9 +147,9 @@ class Game:
         self.camera.reset()
         self.particle_system.clear()
 
-        # Generate initial world
+        # Generate initial world (now includes ceiling)
         self.world_generator.generate_initial_world(
-            self.platforms, self.grounds, self.coins, self.enemies
+            self.platforms, self.grounds, self.coins, self.enemies, self.ceilings
         )
 
         # Reset statistics
@@ -292,8 +304,8 @@ class Game:
         keys = pygame.key.get_pressed()
         self.player.handle_input(keys, self.game_speed)
 
-        # Update player - only ground surfaces for collision (ground-based endless runner)
-        self.player.update(list(self.grounds))
+        # Update player - pass both ground and ceiling surfaces for collision
+        self.player.update(list(self.grounds), list(self.ceilings))
 
         # Update player bullets
         self.player.update_bullets(self.camera.x)
@@ -306,15 +318,24 @@ class Game:
         # Update background
         self.background.update(self.camera.x)
 
-        # Update world generation (ground only - no elevated platforms)
+        # Update world generation (includes ceiling for gravity flip)
         self.world_generator.update(
-            self.player.rect.x, self.platforms, self.grounds, self.coins, self.enemies
+            self.player.rect.x,
+            self.platforms,
+            self.grounds,
+            self.coins,
+            self.enemies,
+            self.ceilings,
         )
-        # Spawn and update enemies (ground-based only)
-        self.enemy_spawner.update(self.player.rect.x, self.enemies, [])
 
+        # Spawn and update enemies (ground, ceiling, and flying)
+        self.enemy_spawner.update(
+            self.player.rect.x, self.enemies, [], self.ceiling_enemies
+        )
+
+        # Update all ground/flying enemies
         for enemy in self.enemies:
-            enemy.update(self.player, None)  # No platforms for ground-based runner
+            enemy.update(self.player, None)
 
             # Check for shooter projectiles
             if isinstance(enemy, ShooterEnemy):
@@ -322,7 +343,7 @@ class Game:
                     if self.player.collision_rect.colliderect(proj.rect):
                         if self.player.take_damage(proj.damage):
                             self.sound_manager.play_sound("hurt")
-                            self.sound_manager.pulse_horror_audio()  # Spike horror on damage
+                            self.sound_manager.pulse_horror_audio()
                             self.camera.shake(8, 15)
                             self.particle_system.emit(
                                 self.player.rect.centerx,
@@ -332,7 +353,11 @@ class Game:
                             )
                         proj.is_dead = True
 
-        # Check enemy collisions
+        # Update ceiling enemies
+        for enemy in self.ceiling_enemies:
+            enemy.update(self.player, None)
+
+        # Check enemy collisions (both ground and ceiling enemies)
         self._check_enemy_collisions()
 
         # Spawn and update collectibles (ground-based only)
@@ -360,9 +385,10 @@ class Game:
 
         # Update dynamic ambient audio based on game state (AAA-style reactive audio)
         health_percent = self.player.health / PLAYER_MAX_HEALTH
+        # Check both ground and ceiling enemies for nearby threat detection
         enemies_nearby = any(
             abs(enemy.rect.x - self.player.rect.x) < 400
-            for enemy in self.enemies
+            for enemy in list(self.enemies) + list(self.ceiling_enemies)
             if not enemy.is_dead
         )
         difficulty = (
@@ -382,42 +408,75 @@ class Game:
         # Update difficulty
         self._update_difficulty()
 
-        # Cleanup
+        # Cleanup ground and ceiling enemies
         self.enemy_spawner.cleanup(self.player.rect.x, self.enemies)
+        self.enemy_spawner.cleanup(self.player.rect.x, self.ceiling_enemies)
         self.collectible_spawner.cleanup(
             self.player.rect.x, self.coins, self.health_packs, self.powerups
         )
 
         # Check for death (fell off screen or health depleted)
-        if self.player.rect.top > SCREEN_HEIGHT + 100 or self.player.is_dead:
+        # With gravity flip, player shouldn't die from going off-screen vertically
+        if self.player.is_dead:
             self._game_over()
 
     def _check_enemy_collisions(self):
-        """Check collisions between player and enemies"""
-        for enemy in self.enemies:
+        """Check collisions between player and enemies (ground, flying, and ceiling)"""
+        # Combine all enemies for collision checking
+        all_enemies = list(self.enemies) + list(self.ceiling_enemies)
+
+        for enemy in all_enemies:
             if enemy.is_dead:
                 continue
 
             if self.player.collision_rect.colliderect(enemy.rect):
-                # Check if player is jumping on enemy
-                # Stomp threshold scaled for larger player (10 * 3 = 30)
-                if (
-                    self.player.velocity_y > 0
-                    and self.player.collision_rect.bottom < enemy.rect.centery + 30
-                ):
+                # Determine stomp conditions based on gravity state and enemy type
+                is_ceiling_enemy = (
+                    hasattr(enemy, "is_ceiling_enemy") and enemy.is_ceiling_enemy
+                )
+
+                can_stomp = False
+                if self.player.gravity_flipped:
+                    # When gravity is flipped, player stomps ceiling enemies from below
+                    if is_ceiling_enemy:
+                        if (
+                            self.player.velocity_y < 0
+                            and self.player.collision_rect.top > enemy.rect.centery - 30
+                        ):
+                            can_stomp = True
+                else:
+                    # Normal gravity - stomp ground enemies from above
+                    if not is_ceiling_enemy:
+                        if (
+                            self.player.velocity_y > 0
+                            and self.player.collision_rect.bottom
+                            < enemy.rect.centery + 30
+                        ):
+                            can_stomp = True
+
+                if can_stomp:
                     # Stomp enemy
                     enemy.take_damage()
-                    self.player.velocity_y = PLAYER_JUMP_POWER * 0.6
+                    # Bounce direction depends on gravity
+                    bounce_power = (
+                        PLAYER_JUMP_POWER * 0.6
+                        if not self.player.gravity_flipped
+                        else -PLAYER_JUMP_POWER * 0.6
+                    )
+                    self.player.velocity_y = bounce_power
                     self.player.add_score(50)
                     self.sound_manager.play_sound("enemy_death")
+                    particle_color = (
+                        CEILING_ENEMY_COLOR if is_ceiling_enemy else ENEMY_COLOR
+                    )
                     self.particle_system.emit(
-                        enemy.rect.centerx, enemy.rect.centery, ENEMY_COLOR, count=20
+                        enemy.rect.centerx, enemy.rect.centery, particle_color, count=20
                     )
                 else:
                     # Take damage
                     if self.player.take_damage(enemy.damage):
                         self.sound_manager.play_sound("hurt")
-                        self.sound_manager.pulse_horror_audio()  # Spike horror on damage
+                        self.sound_manager.pulse_horror_audio()
                         self.camera.shake(10, 20)
                         self.visual_effects.flash(RED, 50)
                         self.particle_system.emit(
@@ -428,9 +487,12 @@ class Game:
                         )
 
     def _check_bullet_enemy_collisions(self):
-        """Check collisions between player bullets and enemies"""
+        """Check collisions between player bullets and enemies (all types)"""
+        # Combine all enemies for bullet collision
+        all_enemies = list(self.enemies) + list(self.ceiling_enemies)
+
         for bullet in list(self.player.bullets):
-            for enemy in self.enemies:
+            for enemy in all_enemies:
                 if enemy.is_dead:
                     continue
 
@@ -448,10 +510,18 @@ class Game:
                     if enemy.is_dead:
                         self.player.add_score(75)  # Bonus for shooting kill
                         self.sound_manager.play_sound("enemy_death")
+                        # Use appropriate color based on enemy type
+                        is_ceiling_enemy = (
+                            hasattr(enemy, "is_ceiling_enemy")
+                            and enemy.is_ceiling_enemy
+                        )
+                        particle_color = (
+                            CEILING_ENEMY_COLOR if is_ceiling_enemy else ENEMY_COLOR
+                        )
                         self.particle_system.emit(
                             enemy.rect.centerx,
                             enemy.rect.centery,
-                            ENEMY_COLOR,
+                            particle_color,
                             count=20,
                         )
                     break  # Each bullet can only hit one enemy
@@ -645,6 +715,10 @@ class Game:
         for ground in self.grounds:
             ground.draw(self.screen, camera_offset)
 
+        # Draw ceilings (for gravity flip mechanic)
+        for ceiling in self.ceilings:
+            ceiling.draw(self.screen, camera_offset)
+
         # Draw platforms
         for platform in self.platforms:
             platform.draw(self.screen, camera_offset)
@@ -657,8 +731,10 @@ class Game:
         for pu in self.powerups:
             pu.draw(self.screen, camera_offset)
 
-        # Draw enemies
+        # Draw all enemies (ground, flying, and ceiling)
         for enemy in self.enemies:
+            enemy.draw(self.screen, camera_offset)
+        for enemy in self.ceiling_enemies:
             enemy.draw(self.screen, camera_offset)
 
         # Draw player

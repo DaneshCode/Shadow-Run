@@ -598,6 +598,195 @@ class Projectile:
         pygame.draw.circle(surface, WHITE, (screen_x, screen_y), self.radius - 2)
 
 
+class CeilingEnemy(Enemy):
+    """
+    Enemy that moves along the ceiling. Player must flip gravity to reach/avoid them.
+    Visual appearance is inverted to show they're on the ceiling.
+    """
+
+    def __init__(self, x, y):
+        super().__init__(x, y)
+
+        # Mark as ceiling enemy
+        self.is_ceiling_enemy = True
+
+        # Create ceiling-specific appearance (purple tint, inverted)
+        self.base_image = self._create_ceiling_surface()
+        self.image = self.base_image
+
+        # Slightly faster than ground enemies
+        self.speed = ENEMY_SPEED * 1.2
+        self.velocity_x = self.speed
+
+    def _create_ceiling_surface(self):
+        """Create ceiling enemy surface - inverted blob hanging from ceiling"""
+        surface = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
+
+        # Body (inverted slime - hanging from ceiling)
+        body_color = CEILING_ENEMY_COLOR
+        pygame.draw.ellipse(
+            surface, body_color, (0, 0, self.width, self.height * 2 // 3)
+        )
+
+        # Darker bottom (now top since inverted)
+        pygame.draw.ellipse(
+            surface,
+            (body_color[0] - 30, body_color[1] - 15, body_color[2] - 30),
+            (2, 5, self.width - 4, self.height // 2 - 5),
+        )
+
+        # Eyes (positioned for ceiling view)
+        eye_y = self.height // 3
+        pygame.draw.circle(surface, WHITE, (self.width // 3, eye_y), 6)
+        pygame.draw.circle(surface, WHITE, (2 * self.width // 3, eye_y), 6)
+
+        # Pupils looking down at player
+        pygame.draw.circle(surface, BLACK, (self.width // 3, eye_y + 2), 3)
+        pygame.draw.circle(surface, BLACK, (2 * self.width // 3, eye_y + 2), 3)
+
+        # Dripping tendrils from bottom
+        for i in range(3):
+            x_pos = self.width // 4 + (i * self.width // 4)
+            tendril_len = random.randint(10, 20)
+            pygame.draw.line(
+                surface,
+                (body_color[0] - 20, body_color[1] - 10, body_color[2] - 20),
+                (x_pos, self.height * 2 // 3),
+                (x_pos, self.height * 2 // 3 + tendril_len),
+                3,
+            )
+
+        return surface
+
+    def draw(self, surface, camera_offset=(0, 0)):
+        """Draw the ceiling enemy with bob animation"""
+        if self.is_dead:
+            return
+
+        screen_x = self.rect.x - camera_offset[0]
+        screen_y = self.rect.y - camera_offset[1]
+
+        # Inverted bobbing animation (bob downward instead of upward)
+        bob_offset = math.sin(pygame.time.get_ticks() * 0.01) * 2
+
+        surface.blit(self.image, (screen_x, screen_y - bob_offset))
+
+
+class FlyingEnemy(Enemy):
+    """
+    Flying enemy that moves in a wave pattern between ground and ceiling.
+    Forces player to time gravity flips carefully.
+    """
+
+    def __init__(self, x, y, screen_height):
+        super().__init__(x, y)
+
+        # Mark as flying enemy
+        self.is_flying_enemy = True
+        self.screen_height = screen_height
+
+        # Wave motion parameters
+        self.base_y = screen_height // 2  # Center of screen
+        self.wave_amplitude = (screen_height - GROUND_HEIGHT - CEILING_HEIGHT) // 3
+        self.wave_frequency = 0.003  # Speed of wave motion
+        self.wave_offset = random.random() * math.pi * 2  # Random phase
+
+        # Create flying enemy appearance
+        self.base_image = self._create_flying_surface()
+        self.image = self.base_image
+
+        # Faster horizontal movement
+        self.speed = FLYING_ENEMY_SPEED
+        self.velocity_x = self.speed
+
+    def _create_flying_surface(self):
+        """Create flying enemy surface - bat/ghost-like creature"""
+        surface = pygame.Surface((self.width, self.height), pygame.SRCALPHA)
+
+        body_color = FLYING_ENEMY_COLOR
+
+        # Wings
+        wing_color = (body_color[0] - 20, body_color[1] + 20, body_color[2] - 10)
+        # Left wing
+        pygame.draw.polygon(
+            surface,
+            wing_color,
+            [
+                (self.width // 4, self.height // 2),
+                (0, self.height // 4),
+                (0, self.height * 3 // 4),
+            ],
+        )
+        # Right wing
+        pygame.draw.polygon(
+            surface,
+            wing_color,
+            [
+                (3 * self.width // 4, self.height // 2),
+                (self.width, self.height // 4),
+                (self.width, self.height * 3 // 4),
+            ],
+        )
+
+        # Body (oval in center)
+        pygame.draw.ellipse(
+            surface,
+            body_color,
+            (self.width // 4, self.height // 4, self.width // 2, self.height // 2),
+        )
+
+        # Glowing eyes
+        eye_y = self.height // 2 - 5
+        pygame.draw.circle(surface, (255, 100, 100), (self.width // 3 + 5, eye_y), 6)
+        pygame.draw.circle(
+            surface, (255, 100, 100), (2 * self.width // 3 - 5, eye_y), 6
+        )
+        pygame.draw.circle(surface, WHITE, (self.width // 3 + 5, eye_y), 3)
+        pygame.draw.circle(surface, WHITE, (2 * self.width // 3 - 5, eye_y), 3)
+
+        return surface
+
+    def update(self, player=None, platforms=None):
+        """Update with wave movement pattern"""
+        if self.is_dead:
+            return
+
+        # Horizontal patrol movement
+        self.rect.x += self.velocity_x * self.direction
+
+        # Reverse at patrol limits
+        if abs(self.rect.x - self.start_x) > self.patrol_range * 2:
+            self.direction *= -1
+            self.facing_right = self.direction > 0
+
+        # Wave motion for vertical position
+        time_factor = pygame.time.get_ticks() * self.wave_frequency + self.wave_offset
+        wave_y = math.sin(time_factor) * self.wave_amplitude
+        self.rect.y = int(self.base_y + wave_y)
+
+        # Update facing direction for image
+        if self.direction > 0 and not self.facing_right:
+            self.facing_right = True
+            self.image = pygame.transform.flip(self.base_image, True, False)
+        elif self.direction < 0 and self.facing_right:
+            self.facing_right = False
+            self.image = self.base_image
+
+    def draw(self, surface, camera_offset=(0, 0)):
+        """Draw the flying enemy with wing flap animation"""
+        if self.is_dead:
+            return
+
+        screen_x = self.rect.x - camera_offset[0]
+        screen_y = self.rect.y - camera_offset[1]
+
+        # Wing flap animation (scale wings based on time)
+        flap_scale = 0.8 + 0.2 * math.sin(pygame.time.get_ticks() * 0.02)
+
+        # Draw with slight vertical oscillation for flight feel
+        surface.blit(self.image, (screen_x, screen_y))
+
+
 class EnemySpawner:
     """
     Manages enemy spawning for endless gameplay with smooth difficulty scaling.
@@ -635,14 +824,15 @@ class EnemySpawner:
         self.difficulty = min(difficulty, MAX_DIFFICULTY_LEVEL)
         self.spawn_rate_multiplier = 1 + (difficulty - 1) * 0.1
 
-    def update(self, player_x, enemies, platforms):
+    def update(self, player_x, enemies, platforms, ceiling_enemies=None):
         """
         Spawn enemies ahead of player using difficulty manager.
 
         Args:
             player_x: Player's x position
-            enemies: Sprite group for enemies
+            enemies: Sprite group for ground enemies
             platforms: List of platforms to spawn enemies on
+            ceiling_enemies: Sprite group for ceiling enemies (gravity flip)
         """
         spawn_until = player_x + self.spawn_distance
 
@@ -665,7 +855,76 @@ class EnemySpawner:
                 if random.random() < swarm_chance:
                     self._spawn_swarm_at(self.last_spawn_x, enemies)
                 else:
-                    self._spawn_enemy_at(self.last_spawn_x, enemies, platforms)
+                    # Decide spawn location: ground, ceiling, or flying
+                    spawn_location = self._choose_spawn_location()
+
+                    if spawn_location == "ceiling" and ceiling_enemies is not None:
+                        self._spawn_ceiling_enemy_at(self.last_spawn_x, ceiling_enemies)
+                    elif spawn_location == "flying":
+                        self._spawn_flying_enemy_at(self.last_spawn_x, enemies)
+                    else:
+                        self._spawn_enemy_at(self.last_spawn_x, enemies, platforms)
+
+    def _choose_spawn_location(self):
+        """
+        Choose where to spawn the enemy: ground, ceiling, or flying.
+        Distribution depends on difficulty.
+        """
+        if self.difficulty_manager:
+            difficulty_percent = self.difficulty_manager.difficulty_percent
+        else:
+            difficulty_percent = min(100, self.difficulty * 10)
+
+        # As difficulty increases, more ceiling and flying enemies
+        # At low difficulty: mostly ground (80% ground, 15% ceiling, 5% flying)
+        # At high difficulty: more varied (50% ground, 30% ceiling, 20% flying)
+        ground_chance = 0.8 - (difficulty_percent / 100) * 0.3
+        ceiling_chance = 0.15 + (difficulty_percent / 100) * 0.15
+        # flying_chance = 1 - ground_chance - ceiling_chance
+
+        roll = random.random()
+        if roll < ground_chance:
+            return "ground"
+        elif roll < ground_chance + ceiling_chance:
+            return "ceiling"
+        else:
+            return "flying"
+
+    def _spawn_ceiling_enemy_at(self, x, ceiling_enemies):
+        """
+        Spawn a ceiling enemy at the given position.
+
+        Args:
+            x: X position to spawn at
+            ceiling_enemies: Sprite group for ceiling enemies
+        """
+        # Ceiling enemies spawn at the top
+        spawn_y = CEILING_HEIGHT
+        spawn_x = x
+
+        enemy = CeilingEnemy(spawn_x, spawn_y)
+
+        # Apply difficulty scaling
+        self._apply_difficulty_scaling(enemy)
+        ceiling_enemies.add(enemy)
+
+    def _spawn_flying_enemy_at(self, x, enemies):
+        """
+        Spawn a flying enemy at the given position.
+
+        Args:
+            x: X position to spawn at
+            enemies: Sprite group for enemies
+        """
+        spawn_x = x
+        # Flying enemies start in the middle area
+        spawn_y = self.screen_height // 2
+
+        enemy = FlyingEnemy(spawn_x, spawn_y, self.screen_height)
+
+        # Apply difficulty scaling
+        self._apply_difficulty_scaling(enemy)
+        enemies.add(enemy)
 
     def _spawn_swarm_at(self, x, enemies):
         """
