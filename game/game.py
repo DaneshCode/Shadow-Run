@@ -169,6 +169,9 @@ class Game:
         # Reset difficulty manager
         self.difficulty_manager.reset()
 
+        # Reset controls hint
+        self.hud.reset_controls_hint()
+
         # Show tutorial before playing
         self.state = STATE_TUTORIAL
 
@@ -336,7 +339,8 @@ class Game:
 
         # Update HUD for button hover
         mouse_pos = pygame.mouse.get_pos()
-        self.hud.update(mouse_pos)
+        dt = 1000 // FPS  # Calculate delta time from FPS
+        self.hud.update(mouse_pos, dt)
 
         # Update camera
         self.camera.update(self.player)

@@ -160,9 +160,28 @@ class HUD:
         )
         self.invis_button_hovered = False
 
-    def update(self, mouse_pos):
-        """Update HUD state (for button hover detection)"""
+        # Controls hint settings
+        self.controls_hint_timer = 12000  # Show for 12 seconds
+        self.controls_hint_fade_start = 7000  # Start fading at 7 seconds remaining
+        self.controls_hints = [
+            ("JUMP", "SPACE / W / UP", (100, 200, 255)),
+            ("FLIP GRAVITY", "SHIFT / S / DOWN / F", (200, 100, 255)),
+            ("SHOOT", "CLICK / X / Z / CTRL", (255, 200, 100)),
+            ("PAUSE", "ESC / P", (200, 200, 200)),
+        ]
+        self.font_hint = pygame.font.Font(None, 22)
+
+    def reset_controls_hint(self):
+        """Reset controls hint timer (call when starting new game)"""
+        self.controls_hint_timer = 12000
+
+    def update(self, mouse_pos, dt=16):
+        """Update HUD state (for button hover detection and controls hint)"""
         self.invis_button_hovered = self.invis_button_rect.collidepoint(mouse_pos)
+
+        # Update controls hint timer
+        if self.controls_hint_timer > 0:
+            self.controls_hint_timer -= dt
 
     def check_invisibility_click(self, mouse_pos):
         """Check if invisibility button was clicked"""
@@ -336,6 +355,55 @@ class HUD:
 
         # Invisibility button
         self._draw_invisibility_button(surface, player)
+
+        # Controls hint (bottom left)
+        self._draw_controls_hint(surface)
+
+    def _draw_controls_hint(self, surface):
+        """Draw controls hint at bottom left of screen"""
+        if self.controls_hint_timer <= 0:
+            return
+
+        # Calculate alpha for fade effect
+        if self.controls_hint_timer < self.controls_hint_fade_start:
+            alpha = int(
+                255 * (self.controls_hint_timer / self.controls_hint_fade_start)
+            )
+        else:
+            alpha = 255
+
+        # Position at top left
+        x = 20
+        y = 120
+        line_height = 22
+
+        # Draw semi-transparent background
+        bg_width = 290
+        bg_height = len(self.controls_hints) * line_height + 55
+        bg_surface = pygame.Surface((bg_width, bg_height), pygame.SRCALPHA)
+        bg_surface.fill((0, 0, 0, int(alpha * 0.6)))
+        surface.blit(bg_surface, (x - 10, y - 20))
+
+        # Draw title
+        title_color = (255, 255, 255, alpha)
+        title_surface = self.font_small.render("CONTROLS", True, (255, 255, 255))
+        title_surface.set_alpha(alpha)
+        surface.blit(title_surface, (x, y - 5))
+        y += line_height + 5
+
+        # Draw each control hint
+        for action, keys, color in self.controls_hints:
+            # Action text
+            action_surface = self.font_hint.render(f"{action}:", True, color)
+            action_surface.set_alpha(alpha)
+            surface.blit(action_surface, (x, y))
+
+            # Keys text
+            keys_surface = self.font_hint.render(keys, True, (200, 200, 200))
+            keys_surface.set_alpha(alpha)
+            surface.blit(keys_surface, (x + 120, y))
+
+            y += line_height
 
     def _draw_invisibility_button(self, surface, player):
         """Draw the invisibility ability button"""
