@@ -337,22 +337,6 @@ class HUD:
                 shadow=True,
             )
 
-        # Gravity indicator
-        gravity_y = 90
-        if hasattr(player, "gravity_flipped"):
-            gravity_text = "CEILING" if player.gravity_flipped else "GROUND"
-            gravity_color = PURPLE if player.gravity_flipped else UI_SUCCESS
-            draw_text(
-                surface,
-                gravity_text,
-                self.font_small,
-                gravity_color,
-                self.health_bar_x + self.health_bar_width // 2,
-                gravity_y,
-                center=True,
-                shadow=True,
-            )
-
         # Invisibility button
         self._draw_invisibility_button(surface, player)
 
