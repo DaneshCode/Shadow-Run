@@ -145,8 +145,10 @@ class Player(pygame.sprite.Sprite):
             try:
                 image_path = os.path.join(folder_path, filename)
                 image = pygame.image.load(image_path).convert_alpha()
-                # Scale to player size
-                image = pygame.transform.scale(image, (PLAYER_WIDTH, PLAYER_HEIGHT))
+                # Scale to player size with high quality smoothscale
+                image = pygame.transform.smoothscale(
+                    image, (PLAYER_WIDTH, PLAYER_HEIGHT)
+                )
                 frames.append(image)
             except pygame.error as e:
                 print(f"Error loading {filename}: {e}")
@@ -230,16 +232,17 @@ class Player(pygame.sprite.Sprite):
         self.is_running = True
         self.velocity_x = AUTO_RUN_SPEED * game_speed  # Speed increases with difficulty
 
-        # Jumping only
+        # Jumping - Space, Up arrow, or W key
         if keys[pygame.K_SPACE] or keys[pygame.K_UP] or keys[pygame.K_w]:
             self.jump()
 
-        # Gravity flip with Shift or S key
+        # Gravity flip with Shift, S, Down arrow, or F key (F for Flip)
         if (
             keys[pygame.K_LSHIFT]
             or keys[pygame.K_RSHIFT]
             or keys[pygame.K_s]
             or keys[pygame.K_DOWN]
+            or keys[pygame.K_f]
         ):
             self.flip_gravity()
 

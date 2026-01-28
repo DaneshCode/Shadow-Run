@@ -4,6 +4,7 @@ Main game class that coordinates all game systems
 """
 
 import pygame
+import math
 from game.settings import *
 from game.player import Player
 from game.platforms import Ground, Ceiling, WorldGenerator
@@ -13,7 +14,13 @@ from game.enemies import (
     ShooterEnemy,
     BerserkerEnemy,
     CeilingEnemy,
+    CeilingChaserEnemy,
+    CeilingShooterEnemy,
+    CeilingGhostEnemy,
     FlyingEnemy,
+    GhostEnemy,
+    TeleporterEnemy,
+    SpiderEnemy,
     EnemySpawner,
 )
 from game.collectibles import Coin, HealthPack, PowerUp, CollectibleSpawner
@@ -157,6 +164,7 @@ class Game:
         self.last_difficulty_score = 0
         self.game_speed = 1.0
         self.start_x = self.player.rect.x  # Track starting position for scoring
+        self.last_distance_score = 0  # Track last distance-based score separately
 
         # Reset difficulty manager
         self.difficulty_manager.reset()
@@ -243,7 +251,7 @@ class Game:
             elif self.state == STATE_GAME_OVER:
                 self.new_game()
 
-        elif event.key == pygame.K_x:
+        elif event.key in [pygame.K_x, pygame.K_z, pygame.K_LCTRL, pygame.K_RCTRL]:
             if self.state == STATE_PLAYING:
                 if self.player.shoot():
                     self.sound_manager.play_sound("shoot")
@@ -402,8 +410,9 @@ class Game:
         # Add distance-based score
         distance_traveled = max(0, (self.player.rect.x - self.start_x) / 50)
         distance_score = int(distance_traveled)
-        if distance_score > self.player.score // 10:
+        if distance_score > self.last_distance_score:
             self.player.add_score(1)
+            self.last_distance_score = distance_score
 
         # Update difficulty
         self._update_difficulty()
@@ -437,11 +446,20 @@ class Game:
 
                 can_stomp = False
                 if self.player.gravity_flipped:
-                    # When gravity is flipped, player stomps ceiling enemies from below
+                    # When gravity is flipped, player is on ceiling
                     if is_ceiling_enemy:
+                        # Stomp ceiling enemies from below (player moving up)
                         if (
                             self.player.velocity_y < 0
-                            and self.player.collision_rect.top > enemy.rect.centery - 30
+                            and self.player.collision_rect.top > enemy.rect.centery - 60
+                        ):
+                            can_stomp = True
+                    else:
+                        # Stomp ground enemies from above when jumping down (gravity flipped)
+                        if (
+                            self.player.velocity_y > 0
+                            and self.player.collision_rect.bottom
+                            < enemy.rect.centery + 60
                         ):
                             can_stomp = True
                 else:
@@ -450,7 +468,7 @@ class Game:
                         if (
                             self.player.velocity_y > 0
                             and self.player.collision_rect.bottom
-                            < enemy.rect.centery + 30
+                            < enemy.rect.centery + 60
                         ):
                             can_stomp = True
 
@@ -528,14 +546,18 @@ class Game:
 
     def _check_collectible_collisions(self):
         """Check collisions between player and collectibles"""
-        # Coins
+        # Coins - only collect matching type based on gravity state
         for coin in list(self.coins):
             if self.player.collision_rect.colliderect(coin.rect):
-                coin.collect(self.player)
-                self.sound_manager.play_sound("coin")
-                self.particle_system.emit(
-                    coin.rect.centerx, coin.rect.centery, COIN_COLOR, count=8
-                )
+                # Check if coin type matches player's gravity state
+                # Ceiling coins can only be collected when gravity is flipped
+                # Ground coins can only be collected when gravity is normal
+                if coin.is_ceiling == self.player.gravity_flipped:
+                    coin.collect(self.player)
+                    self.sound_manager.play_sound("coin")
+                    self.particle_system.emit(
+                        coin.rect.centerx, coin.rect.centery, COIN_COLOR, count=8
+                    )
 
         # Health packs
         for hp in list(self.health_packs):

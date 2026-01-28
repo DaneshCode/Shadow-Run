@@ -39,7 +39,7 @@ class Background:
 
         # Moon position
         self.moon_x = screen_width * 0.8
-        self.moon_y = 80
+        self.moon_y = 180
 
     def _create_layers(self):
         """Create parallax background layers"""

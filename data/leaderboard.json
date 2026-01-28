@@ -2,6 +2,11 @@
   "entries": [
     {
       "name": "Player",
+      "score": 8272,
+      "coins": 270
+    },
+    {
+      "name": "Player",
       "score": 8175,
       "coins": 189
     },
@@ -44,11 +49,6 @@
       "name": "Player",
       "score": 5401,
       "coins": 160
-    },
-    {
-      "name": "Player",
-      "score": 5204,
-      "coins": 30
     }
   ]
 }

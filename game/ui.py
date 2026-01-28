@@ -306,7 +306,7 @@ class HUD:
         # Gravity indicator
         gravity_y = 90
         if hasattr(player, "gravity_flipped"):
-            gravity_text = "▲ CEILING" if player.gravity_flipped else "▼ GROUND"
+            gravity_text = "CEILING" if player.gravity_flipped else "GROUND"
             gravity_color = PURPLE if player.gravity_flipped else UI_SUCCESS
             draw_text(
                 surface,
@@ -1031,8 +1031,9 @@ class SettingsScreen:
         )
 
         controls = [
-            "Jump: SPACE or W or UP",
-            "Shoot: LEFT CLICK or X (5 bullets, regenerates)",
+            "Jump: SPACE / W / UP Arrow",
+            "Flip Gravity: SHIFT / S / DOWN / F",
+            "Shoot: LEFT CLICK / X / Z / CTRL",
             "Pause: ESC or P",
         ]
 
@@ -1113,8 +1114,8 @@ class TutorialScreen:
         controls_y = 200
         controls = [
             ("JUMP", "Space  /  W  /  Up Arrow", UI_ACCENT),
-            ("FLIP GRAVITY", "Shift  /  S  /  Down Arrow", PURPLE),
-            ("SHOOT", "Left Click  or  X Key", BULLET_COLOR),
+            ("FLIP GRAVITY", "Shift  /  S  /  Down  /  F", PURPLE),
+            ("SHOOT", "Click  /  X  /  Z  /  Ctrl", BULLET_COLOR),
             ("PAUSE", "Escape  or  P", LIGHT_GRAY),
         ]
 

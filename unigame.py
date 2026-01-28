@@ -4,8 +4,10 @@
 A professional 2D endless platformer game built with Pygame
 
 Controls:
-    - SPACE or UP or W: Jump
-    - ESC or P: Pause
+      "Jump: SPACE / W / UP Arrow",
+      "Flip Gravity: SHIFT / S / DOWN / F",
+      "Shoot: LEFT CLICK / X / Z / CTRL",
+      "Pause: ESC or P",
 
 Features:
     - Endless procedurally generated world
@@ -43,11 +45,6 @@ def main():
     print("=" * 60)
     print("  SHADOW RUN : endless nightmare")
     print("=" * 60)
-    print()
-    print("  Controls:")
-    print("    - Space/Up/W: Jump")
-    print("    - ESC or P: Pause")
-    print()
     print("  Starting game...")
     print("=" * 60)
 

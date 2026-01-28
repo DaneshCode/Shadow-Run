@@ -65,25 +65,26 @@ class Collectible(pygame.sprite.Sprite):
 class Coin(Collectible):
     """
     Coin collectible - adds score
+    is_ceiling: True if this coin can only be collected from ceiling, False for ground only
     """
 
-    def __init__(self, x, y):
+    def __init__(self, x, y, is_ceiling=False):
         super().__init__(x, y, COIN_SIZE, COIN_SIZE)
 
         self.value = COIN_VALUE
+        self.is_ceiling = is_ceiling  # True = ceiling coin, False = ground coin
         self._create_surface()
 
     def _create_surface(self):
-        """Create coin appearance"""
+        """Create coin appearance - gold color for all coins"""
         self.image = pygame.Surface((COIN_SIZE, COIN_SIZE), pygame.SRCALPHA)
 
-        # Coin circle
         center = COIN_SIZE // 2
+
+        # All coins are gold color
         pygame.draw.circle(self.image, COIN_COLOR, (center, center), center)
         pygame.draw.circle(self.image, (218, 165, 32), (center, center), center - 2)
         pygame.draw.circle(self.image, (255, 223, 0), (center - 2, center - 2), 3)
-
-        # Dollar sign or star
         pygame.draw.circle(self.image, (200, 150, 0), (center, center), center // 2, 2)
 
     def collect(self, player):
@@ -149,7 +150,7 @@ class PowerUp(Collectible):
     Power-up collectible - grants temporary abilities
     """
 
-    TYPES = ["speed", "invincibility", "double_jump", "magnet"]
+    TYPES = ["invincibility"]
 
     def __init__(self, x, y, power_type=None):
         super().__init__(x, y, 32, 32)
@@ -163,10 +164,7 @@ class PowerUp(Collectible):
         self.image = pygame.Surface((32, 32), pygame.SRCALPHA)
 
         colors = {
-            "speed": (0, 200, 255),
             "invincibility": (255, 215, 0),
-            "double_jump": (100, 255, 100),
-            "magnet": (200, 100, 255),
         }
 
         color = colors.get(self.power_type, PURPLE)
@@ -185,17 +183,9 @@ class PowerUp(Collectible):
 
     def collect(self, player):
         """Apply power-up effect"""
-        if self.power_type == "speed":
-            # Speed boost handled by game manager
-            pass
-        elif self.power_type == "invincibility":
+        if self.power_type == "invincibility":
             player.is_invincible = True
             player.invincibility_timer = self.duration
-        elif self.power_type == "double_jump":
-            player.can_double_jump = True
-        elif self.power_type == "magnet":
-            # Magnet effect handled by game manager
-            pass
 
         super().collect(player)
 
@@ -224,9 +214,11 @@ class CollectibleSpawner:
         self.screen_height = screen_height
 
         self.last_spawn_x = 0
-        self.coin_interval = 250  # Interval between coin patterns
+        self.coin_interval = (
+            500  # Interval between coin patterns (increased for fewer coins)
+        )
         self.health_interval = 1000
-        self.powerup_interval = 2000
+        self.powerup_interval = 1500  # More frequent power-ups (was 2000)
 
         self.last_health_x = 0
         self.last_powerup_x = 0
@@ -250,7 +242,7 @@ class CollectibleSpawner:
         self.easy_coin_min = 20  # Just slightly above ground
         self.easy_coin_max = 150  # Still reachable without jump for tall player
         self.jump_coin_min = 200  # Requires small jump
-        self.jump_coin_max = 340  # Requires good jump but still reachable
+        self.jump_coin_max = 320  # Requires good jump but still reachable
 
     def update(self, player_x, coins, health_packs, powerups, platforms):
         """
@@ -279,26 +271,39 @@ class CollectibleSpawner:
             if random.random() < 0.2:
                 self._spawn_health_at(self.last_health_x, health_packs, platforms)
 
-        # Spawn power-ups (rare, high up)
+        # Spawn power-ups (more accessible now)
         while self.last_powerup_x < spawn_until:
             self.last_powerup_x += self.powerup_interval
 
-            if random.random() < 0.1:
+            if random.random() < 0.20:  # 20% chance (was 10%)
                 self._spawn_powerup_at(self.last_powerup_x, powerups, platforms)
 
     def _spawn_coin_pattern(self, x, coins):
-        """Spawn coins only at 380px height above ground - requires jumping"""
+        """Spawn coins in two rows - both require jumping to collect"""
         ground_y = self.screen_height - self.ground_height
+        ceiling_y = self.ground_height  # Ceiling position
 
-        # Horizontal line of 3-4 coins at exactly 380px height
-        num_coins = random.randint(3, 4)
+        num_coins = random.randint(2, 3)  # Reduced from 3-4 to 2-3
         spacing = 45
-        height = ground_y - 340  # Fixed at 380px above ground
+
+        # Ground row - coins high enough that player must jump from ground to get them
+        # Player height is 192, so coins at 250px above ground require jumping
+        ground_coin_height = ground_y - 240  # Requires jump from ground
+
+        # Ceiling row - coins low enough that player must jump from ceiling to get them
+        # When on ceiling, player hangs down, so coins need to be further from ceiling
+        ceiling_coin_height = ceiling_y + 200  # Requires jump from ceiling
 
         for i in range(num_coins):
             coin_x = x + i * spacing
-            coin = Coin(coin_x, height)
-            coins.add(coin)
+
+            # Spawn ground coin
+            ground_coin = Coin(coin_x, ground_coin_height, is_ceiling=False)
+            coins.add(ground_coin)
+
+            # Spawn ceiling coin
+            ceiling_coin = Coin(coin_x, ceiling_coin_height, is_ceiling=True)
+            coins.add(ceiling_coin)
 
     def _spawn_health_at(self, x, health_packs, platforms):
         """Spawn a health pack - at reachable jump height"""
