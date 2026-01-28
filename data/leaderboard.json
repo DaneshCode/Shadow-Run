@@ -22,6 +22,11 @@
     },
     {
       "name": "Player",
+      "score": 6836,
+      "coins": 148
+    },
+    {
+      "name": "Player",
       "score": 6579,
       "coins": 179
     },
@@ -44,11 +49,6 @@
       "name": "Player",
       "score": 5455,
       "coins": 96
-    },
-    {
-      "name": "Player",
-      "score": 5401,
-      "coins": 160
     }
   ]
 }

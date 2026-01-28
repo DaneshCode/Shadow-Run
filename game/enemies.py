@@ -1671,36 +1671,32 @@ class EnemySpawner:
 
             # Check if we spawn at this interval
             if random.random() < spawn_chance:
-                # Check for swarm spawn
-                if random.random() < swarm_chance:
-                    self._spawn_swarm_at(self.last_spawn_x, enemies)
-                else:
-                    # Decide spawn location: ground, ceiling, or flying
-                    spawn_location = self._choose_spawn_location()
+                # Decide spawn location: ground, ceiling, or flying
+                spawn_location = self._choose_spawn_location()
 
-                    if spawn_location == "ceiling" and ceiling_enemies is not None:
-                        self._spawn_ceiling_enemy_at(self.last_spawn_x, ceiling_enemies)
-                    elif spawn_location == "flying":
-                        self._spawn_flying_enemy_at(self.last_spawn_x, enemies)
-                    else:
-                        self._spawn_enemy_at(self.last_spawn_x, enemies, platforms)
+                if spawn_location == "ceiling" and ceiling_enemies is not None:
+                    self._spawn_ceiling_enemy_at(self.last_spawn_x, ceiling_enemies)
+                elif spawn_location == "flying":
+                    self._spawn_flying_enemy_at(self.last_spawn_x, enemies)
+                else:
+                    self._spawn_enemy_at(self.last_spawn_x, enemies, platforms)
 
     def _choose_spawn_location(self):
         """
         Choose where to spawn the enemy: ground, ceiling, or flying.
-        Distribution depends on difficulty.
+        Distribution: equal ground and ceiling enemies, with small flying chance.
         """
         if self.difficulty_manager:
             difficulty_percent = self.difficulty_manager.difficulty_percent
         else:
             difficulty_percent = min(100, self.difficulty * 10)
 
-        # As difficulty increases, more ceiling and flying enemies
-        # At low difficulty: mostly ground (80% ground, 15% ceiling, 5% flying)
-        # At high difficulty: more varied (50% ground, 30% ceiling, 20% flying)
-        ground_chance = 0.8 - (difficulty_percent / 100) * 0.3
-        ceiling_chance = 0.15 + (difficulty_percent / 100) * 0.15
-        # flying_chance = 1 - ground_chance - ceiling_chance
+        # Equal ground and ceiling enemies
+        # Flying chance increases slightly with difficulty
+        flying_chance = 0.05 + (difficulty_percent / 100) * 0.10  # 5% to 15%
+        remaining_chance = 1.0 - flying_chance
+        ground_chance = remaining_chance / 2  # 50% of remaining
+        ceiling_chance = remaining_chance / 2  # 50% of remaining (equal to ground)
 
         roll = random.random()
         if roll < ground_chance:

@@ -163,23 +163,28 @@ class PowerUp(Collectible):
         """Create power-up appearance based on type"""
         self.image = pygame.Surface((32, 32), pygame.SRCALPHA)
 
-        colors = {
-            "invincibility": (255, 215, 0),
-        }
+        # Ghost shape for invincibility (white/gray like ghost icon)
+        ghost_size = 24
+        ghost_x = 16 - ghost_size // 2
+        ghost_y = 16 - ghost_size // 2 - 2
 
-        color = colors.get(self.power_type, PURPLE)
+        # Ghost body (rounded top, wavy bottom) - white color
+        pygame.draw.ellipse(
+            self.image, WHITE, (ghost_x, ghost_y, ghost_size, ghost_size)
+        )
+        pygame.draw.rect(
+            self.image,
+            WHITE,
+            (ghost_x, ghost_y + ghost_size // 2, ghost_size, ghost_size // 2),
+        )
 
-        # Star shape
-        pygame.draw.circle(self.image, color, (16, 16), 14)
-        pygame.draw.circle(self.image, WHITE, (16, 16), 10)
-        pygame.draw.circle(self.image, color, (16, 16), 6)
-
-        # Sparkle
-        for angle in range(0, 360, 45):
-            rad = math.radians(angle)
-            x = 16 + math.cos(rad) * 12
-            y = 16 + math.sin(rad) * 12
-            pygame.draw.circle(self.image, WHITE, (int(x), int(y)), 2)
+        # Ghost eyes - gray color
+        eye_color = (100, 100, 100)  # Dark gray for eyes
+        eye_y = ghost_y + ghost_size // 3
+        pygame.draw.circle(self.image, eye_color, (ghost_x + ghost_size // 3, eye_y), 3)
+        pygame.draw.circle(
+            self.image, eye_color, (ghost_x + 2 * ghost_size // 3, eye_y), 3
+        )
 
     def collect(self, player):
         """Apply power-up effect"""

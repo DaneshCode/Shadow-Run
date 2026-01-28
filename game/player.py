@@ -76,6 +76,7 @@ class Player(pygame.sprite.Sprite):
         self.flip_transition_max = 15  # Frames for flip transition
         self.last_flip_time = 0  # For cooldown
         self.on_ceiling = False  # Whether touching ceiling
+        self.flip_key_released = True  # Must release key before flipping again
 
         # Shooting mechanics
         self.bullets = pygame.sprite.Group()
@@ -86,6 +87,14 @@ class Player(pygame.sprite.Sprite):
         self.ammo = MAX_AMMO
         self.max_ammo = MAX_AMMO
         self.last_ammo_regen_time = 0
+
+        # Invisibility system
+        self.is_invisible = False
+        self.invisibility_charge = 0  # 0 to INVISIBILITY_CHARGE_TIME
+        self.invisibility_timer = 0  # countdown when active
+        self.invisibility_ready = False  # True when fully charged
+        self.last_invisibility_update = pygame.time.get_ticks()
+        self.invisibility_blink_timer = 0  # For blinking effect
 
     def _load_animations(self):
         """
@@ -237,14 +246,19 @@ class Player(pygame.sprite.Sprite):
             self.jump()
 
         # Gravity flip with Shift, S, Down arrow, or F key (F for Flip)
-        if (
+        flip_key_pressed = (
             keys[pygame.K_LSHIFT]
             or keys[pygame.K_RSHIFT]
             or keys[pygame.K_s]
             or keys[pygame.K_DOWN]
             or keys[pygame.K_f]
-        ):
-            self.flip_gravity()
+        )
+        if flip_key_pressed:
+            if self.flip_key_released:
+                self.flip_gravity()
+                self.flip_key_released = False
+        else:
+            self.flip_key_released = True
 
     def jump(self):
         """Perform a jump if allowed"""
@@ -287,17 +301,11 @@ class Player(pygame.sprite.Sprite):
         if self.is_dead:
             return False
 
-        # Cooldown check
-        current_time = pygame.time.get_ticks()
-        if current_time - self.last_flip_time < GRAVITY_FLIP_COOLDOWN:
-            return False
-
         # Only flip if not in transition
         if self.flip_transition > 0:
             return False
 
         # Start flip transition
-        self.last_flip_time = current_time
         self.gravity_flipped = not self.gravity_flipped
         self.gravity_direction = -1 if self.gravity_flipped else 1
         self.flip_transition = 1
@@ -610,6 +618,14 @@ class Player(pygame.sprite.Sprite):
         self.ammo = self.max_ammo
         self.last_ammo_regen_time = pygame.time.get_ticks()
 
+        # Reset invisibility
+        self.is_invisible = False
+        self.invisibility_charge = 0
+        self.invisibility_timer = 0
+        self.invisibility_ready = False
+        self.last_invisibility_update = pygame.time.get_ticks()
+        self.invisibility_blink_timer = 0
+
     def draw(self, surface, camera_offset=(0, 0)):
         """
         Draw the player
@@ -634,8 +650,16 @@ class Player(pygame.sprite.Sprite):
                 self.rect.y - camera_offset[1] + 40
             )  # Offset to align feet with ground
 
-        # Draw player
-        surface.blit(self.image, (screen_x, screen_y))
+        # Draw player with invisibility effect if active (blinking like invincibility)
+        if self.is_invisible:
+            # Blink effect - show/hide every few frames (same as invincibility)
+            show_frame = (self.invisibility_blink_timer // 5) % 2 == 0
+            if show_frame:
+                surface.blit(self.image, (screen_x, screen_y))
+            # When not show_frame, player is invisible (not drawn) - blinking effect
+        else:
+            # Draw player normally
+            surface.blit(self.image, (screen_x, screen_y))
 
         # Debug: Draw collision rect (uncomment for debugging)
         # debug_rect = self.collision_rect.copy()
@@ -695,6 +719,51 @@ class Player(pygame.sprite.Sprite):
         """Draw all bullets"""
         for bullet in self.bullets:
             bullet.draw(surface, camera_offset)
+
+    def update_invisibility(self):
+        """Update invisibility charge and active timer"""
+        current_time = pygame.time.get_ticks()
+        delta_time = current_time - self.last_invisibility_update
+        self.last_invisibility_update = current_time
+
+        if self.is_invisible:
+            # Countdown active invisibility
+            self.invisibility_timer -= delta_time
+            self.invisibility_blink_timer += 1  # Increment blink timer
+            if self.invisibility_timer <= 0:
+                self.is_invisible = False
+                self.invisibility_timer = 0
+                self.invisibility_charge = 0  # Reset charge after use
+                self.invisibility_ready = False
+                self.invisibility_blink_timer = 0
+        else:
+            # Charge up invisibility when not active
+            if self.invisibility_charge < INVISIBILITY_CHARGE_TIME:
+                self.invisibility_charge += delta_time
+                if self.invisibility_charge >= INVISIBILITY_CHARGE_TIME:
+                    self.invisibility_charge = INVISIBILITY_CHARGE_TIME
+                    self.invisibility_ready = True
+
+    def activate_invisibility(self):
+        """Activate invisibility if fully charged"""
+        if self.is_dead:
+            return False
+
+        if self.invisibility_ready and not self.is_invisible:
+            self.is_invisible = True
+            self.invisibility_timer = INVISIBILITY_DURATION
+            self.invisibility_ready = False
+            return True
+        return False
+
+    def get_invisibility_ratio(self):
+        """Get the charge ratio for UI display (0.0 to 1.0)"""
+        if self.is_invisible:
+            # Show remaining time when active
+            return self.invisibility_timer / INVISIBILITY_DURATION
+        else:
+            # Show charge progress
+            return self.invisibility_charge / INVISIBILITY_CHARGE_TIME
 
 
 class Bullet(pygame.sprite.Sprite):

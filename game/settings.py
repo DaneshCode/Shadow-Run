@@ -89,8 +89,16 @@ BULLET_LIFETIME = 2000  # milliseconds
 # Ammo system
 MAX_AMMO = 5
 AMMO_REGEN_TIME = 10000  # milliseconds to regenerate 1 bullet (10 seconds per bullet)
-AMMO_COLOR = (80, 180, 255)
-AMMO_EMPTY_COLOR = (60, 60, 80)
+AMMO_COLOR = (255, 180, 100)  # Warm orange/gold - harmonizes with red HP and dark theme
+AMMO_EMPTY_COLOR = (60, 50, 40)
+
+# Invisibility system
+INVISIBILITY_DURATION = 3000  # milliseconds player stays invisible (3 seconds)
+INVISIBILITY_CHARGE_TIME = 15000  # milliseconds to fully charge (15 seconds)
+INVISIBILITY_COLOR = (100, 200, 255)  # Cyan/ghost color
+INVISIBILITY_EMPTY_COLOR = (40, 60, 80)
+INVISIBILITY_READY_COLOR = (0, 255, 200)  # Bright color when ready
+INVISIBILITY_ACTIVE_ALPHA = 80  # Player transparency when invisible (0-255)
 
 # Auto-run speed
 AUTO_RUN_SPEED = 4

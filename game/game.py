@@ -212,9 +212,16 @@ class Game:
 
     def _handle_mousedown(self, event):
         """Handle mouse button press events"""
-        if self.state == STATE_PLAYING and event.button == 1:  # Left click to shoot
-            if self.player.shoot():
-                self.sound_manager.play_sound("shoot")
+        if self.state == STATE_PLAYING and event.button == 1:  # Left click
+            # Check if clicked on invisibility button first
+            if self.hud.check_invisibility_click(event.pos):
+                if self.player.activate_invisibility():
+                    self.sound_manager.play_sound("powerup")
+                    self.visual_effects.flash((100, 200, 255), 20)
+            else:
+                # Otherwise shoot
+                if self.player.shoot():
+                    self.sound_manager.play_sound("shoot")
         elif self.state == STATE_TUTORIAL:
             self.start_playing()
 
@@ -255,6 +262,12 @@ class Game:
             if self.state == STATE_PLAYING:
                 if self.player.shoot():
                     self.sound_manager.play_sound("shoot")
+
+        elif event.key == pygame.K_g:  # G for Ghost/Invisibility
+            if self.state == STATE_PLAYING:
+                if self.player.activate_invisibility():
+                    self.sound_manager.play_sound("powerup")
+                    self.visual_effects.flash((100, 200, 255), 20)
 
     def _handle_keyup(self, event):
         """Handle key release events"""
@@ -318,7 +331,12 @@ class Game:
         # Update player bullets
         self.player.update_bullets(self.camera.x)
         self.player.update_ammo()  # Regenerate ammo over time
+        self.player.update_invisibility()  # Update invisibility charge/timer
         self._check_bullet_enemy_collisions()
+
+        # Update HUD for button hover
+        mouse_pos = pygame.mouse.get_pos()
+        self.hud.update(mouse_pos)
 
         # Update camera
         self.camera.update(self.player)
@@ -345,8 +363,8 @@ class Game:
         for enemy in self.enemies:
             enemy.update(self.player, None)
 
-            # Check for shooter projectiles
-            if isinstance(enemy, ShooterEnemy):
+            # Check for shooter projectiles (skip if player is invisible)
+            if isinstance(enemy, ShooterEnemy) and not self.player.is_invisible:
                 for proj in enemy.projectiles:
                     if self.player.collision_rect.colliderect(proj.rect):
                         if self.player.take_damage(proj.damage):
@@ -407,11 +425,11 @@ class Game:
         )
         self.sound_manager.update_ambient_audio(1 / FPS)
 
-        # Add distance-based score
-        distance_traveled = max(0, (self.player.rect.x - self.start_x) / 50)
+        # Add distance-based score (faster rate for more engaging gameplay)
+        distance_traveled = max(0, (self.player.rect.x - self.start_x) / 25)
         distance_score = int(distance_traveled)
         if distance_score > self.last_distance_score:
-            self.player.add_score(1)
+            self.player.add_score(2)  # Give 2 points per distance unit
             self.last_distance_score = distance_score
 
         # Update difficulty
@@ -431,6 +449,10 @@ class Game:
 
     def _check_enemy_collisions(self):
         """Check collisions between player and enemies (ground, flying, and ceiling)"""
+        # Skip collision check if player is invisible (ghost mode)
+        if self.player.is_invisible:
+            return
+
         # Combine all enemies for collision checking
         all_enemies = list(self.enemies) + list(self.ceiling_enemies)
 
@@ -565,7 +587,7 @@ class Game:
                 hp.collect(self.player)
                 self.sound_manager.play_sound("powerup")
                 self.particle_system.emit(
-                    hp.rect.centerx, hp.rect.centery, GREEN, count=12
+                    hp.rect.centerx, hp.rect.centery, RED, count=12
                 )
 
         # Power-ups

@@ -148,6 +148,26 @@ class HUD:
         self.best_score_x = screen_width - 20
         self.best_score_y = 100
 
+        # Invisibility button settings
+        self.invis_button_size = 60
+        self.invis_button_x = screen_width - 90
+        self.invis_button_y = screen_height - 100
+        self.invis_button_rect = pygame.Rect(
+            self.invis_button_x,
+            self.invis_button_y,
+            self.invis_button_size,
+            self.invis_button_size,
+        )
+        self.invis_button_hovered = False
+
+    def update(self, mouse_pos):
+        """Update HUD state (for button hover detection)"""
+        self.invis_button_hovered = self.invis_button_rect.collidepoint(mouse_pos)
+
+    def check_invisibility_click(self, mouse_pos):
+        """Check if invisibility button was clicked"""
+        return self.invis_button_rect.collidepoint(mouse_pos)
+
     def draw(self, surface, player, difficulty=1, high_score=0):
         """
         Draw the HUD
@@ -179,13 +199,8 @@ class HUD:
                 self.health_bar_height,
             )
 
-            # Color based on health level
-            if health_ratio > 0.6:
-                health_color = UI_SUCCESS
-            elif health_ratio > 0.3:
-                health_color = ORANGE
-            else:
-                health_color = UI_DANGER
+            # Color - always red for HP
+            health_color = RED
 
             pygame.draw.rect(surface, health_color, health_rect, border_radius=5)
 
@@ -258,10 +273,10 @@ class HUD:
         # Ammo label with bullet icon
         draw_text(
             surface,
-            "AMMO",
+            "BULLETS",
             self.font_small,
             AMMO_COLOR,
-            self.ammo_bar_x + self.ammo_bar_width + 40,
+            self.ammo_bar_x + self.ammo_bar_width + 50,
             self.ammo_bar_y + self.ammo_bar_height // 2,
             center=True,
             shadow=True,
@@ -317,6 +332,129 @@ class HUD:
                 gravity_y,
                 center=True,
                 shadow=True,
+            )
+
+        # Invisibility button
+        self._draw_invisibility_button(surface, player)
+
+    def _draw_invisibility_button(self, surface, player):
+        """Draw the invisibility ability button"""
+        # Get invisibility state from player
+        invis_ratio = (
+            player.get_invisibility_ratio()
+            if hasattr(player, "get_invisibility_ratio")
+            else 0
+        )
+        is_ready = (
+            player.invisibility_ready
+            if hasattr(player, "invisibility_ready")
+            else False
+        )
+        is_active = player.is_invisible if hasattr(player, "is_invisible") else False
+
+        # Button background
+        bg_color = INVISIBILITY_EMPTY_COLOR
+        if is_active:
+            bg_color = (40, 100, 120)  # Active color (bluish)
+        elif is_ready:
+            bg_color = (30, 80, 60)  # Ready color (greenish)
+
+        # Draw circular button background
+        center_x = self.invis_button_x + self.invis_button_size // 2
+        center_y = self.invis_button_y + self.invis_button_size // 2
+        radius = self.invis_button_size // 2
+
+        # Background circle
+        pygame.draw.circle(surface, bg_color, (center_x, center_y), radius)
+
+        # Draw charge/active progress as arc
+        if invis_ratio > 0:
+            # Choose color based on state
+            if is_active:
+                bar_color = INVISIBILITY_COLOR
+            elif is_ready:
+                bar_color = INVISIBILITY_READY_COLOR
+            else:
+                bar_color = INVISIBILITY_COLOR
+
+            # Draw progress arc
+            import math
+
+            start_angle = math.pi / 2  # Start from top
+            end_angle = start_angle - (2 * math.pi * invis_ratio)
+
+            # Draw filled arc using polygon approximation
+            if invis_ratio > 0:
+                points = [(center_x, center_y)]
+                segments = int(32 * invis_ratio) + 1
+                for i in range(segments + 1):
+                    angle = start_angle - (2 * math.pi * invis_ratio * i / segments)
+                    px = center_x + (radius - 4) * math.cos(angle)
+                    py = center_y - (radius - 4) * math.sin(angle)
+                    points.append((px, py))
+                if len(points) >= 3:
+                    pygame.draw.polygon(surface, bar_color, points)
+
+        # Border
+        border_color = INVISIBILITY_READY_COLOR if is_ready else WHITE
+        border_width = 3 if is_ready or is_active else 2
+        pygame.draw.circle(
+            surface, border_color, (center_x, center_y), radius, border_width
+        )
+
+        # Ghost icon in center
+        icon_color = WHITE if is_ready or is_active else LIGHT_GRAY
+        # Simple ghost shape
+        ghost_size = 20
+        ghost_x = center_x - ghost_size // 2
+        ghost_y = center_y - ghost_size // 2 - 2
+
+        # Ghost body (rounded top, wavy bottom)
+        pygame.draw.ellipse(
+            surface, icon_color, (ghost_x, ghost_y, ghost_size, ghost_size)
+        )
+        pygame.draw.rect(
+            surface,
+            icon_color,
+            (ghost_x, ghost_y + ghost_size // 2, ghost_size, ghost_size // 2),
+        )
+
+        # Ghost eyes
+        eye_y = ghost_y + ghost_size // 3
+        pygame.draw.circle(surface, bg_color, (ghost_x + ghost_size // 3, eye_y), 3)
+        pygame.draw.circle(surface, bg_color, (ghost_x + 2 * ghost_size // 3, eye_y), 3)
+
+        # "GHOST" text below button if ready
+        if is_ready and not is_active:
+            draw_text(
+                surface,
+                "CLICK!",
+                self.font_small,
+                INVISIBILITY_READY_COLOR,
+                center_x,
+                self.invis_button_y + self.invis_button_size + 15,
+                center=True,
+                shadow=True,
+            )
+        elif is_active:
+            # Show remaining time
+            remaining_sec = player.invisibility_timer / 1000
+            draw_text(
+                surface,
+                f"{remaining_sec:.1f}s",
+                self.font_small,
+                INVISIBILITY_COLOR,
+                center_x,
+                self.invis_button_y + self.invis_button_size + 15,
+                center=True,
+                shadow=True,
+            )
+
+        # Hover effect
+        if self.invis_button_hovered and is_ready and not is_active:
+            # Draw highlight ring
+            pygame.draw.circle(
+                surface, INVISIBILITY_READY_COLOR, (center_x, center_y), radius + 3, 2
             )
 
 
@@ -1116,11 +1254,12 @@ class TutorialScreen:
             ("JUMP", "Space  /  W  /  Up Arrow", UI_ACCENT),
             ("FLIP GRAVITY", "Shift  /  S  /  Down  /  F", PURPLE),
             ("SHOOT", "Click  /  X  /  Z  /  Ctrl", BULLET_COLOR),
+            ("GHOST MODE", "G  or  Click Button", INVISIBILITY_COLOR),
             ("PAUSE", "Escape  or  P", LIGHT_GRAY),
         ]
 
         for i, (action, keys, color) in enumerate(controls):
-            y = controls_y + i * 60
+            y = controls_y + i * 50
 
             # Action name
             draw_text(
@@ -1150,6 +1289,7 @@ class TutorialScreen:
             "FLIP GRAVITY to switch between ground and ceiling!",
             "Enemies spawn on both surfaces • Time your flips wisely",
             "You have 5 bullets • Ammo regenerates over time",
+            "GHOST MODE: Become invisible to pass through enemies! (15s charge)",
         ]
 
         for i, tip in enumerate(tips):
