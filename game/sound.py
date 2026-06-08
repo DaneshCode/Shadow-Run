@@ -7,6 +7,7 @@ Professional AAA-style dynamic audio mixing system
 import pygame
 import os
 import math
+import atexit
 from game.settings import *
 
 
@@ -640,6 +641,15 @@ class SoundManager:
                 wav_file.setsampwidth(2)
                 wav_file.setframerate(sample_rate)
                 wav_file.writeframes(array.array("h", audio_data).tobytes())
+
+            # Clean up the temporary file when the game exits
+            def cleanup_temp():
+                try:
+                    if os.path.exists(temp_path):
+                        os.remove(temp_path)
+                except OSError:
+                    pass
+            atexit.register(cleanup_temp)
 
             # Load and play the music
             pygame.mixer.music.load(temp_path)

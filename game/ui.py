@@ -1308,7 +1308,7 @@ class TutorialScreen:
             ("JUMP", "Space  /  W  /  Up Arrow", UI_ACCENT),
             ("FLIP GRAVITY", "Shift  /  S  /  Down  /  F", PURPLE),
             ("SHOOT", "Click  /  X  /  Z  /  Ctrl", BULLET_COLOR),
-            ("GHOST MODE", "Right Click  /  C  /  G  /  Button", INVISIBILITY_COLOR),
+            ("GHOST MODE    ", "    Right Click  /  C  /  G  /  Button", INVISIBILITY_COLOR),
             ("PAUSE", "Escape  or  P", LIGHT_GRAY),
         ]
 

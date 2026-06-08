@@ -330,7 +330,7 @@ class Game:
 
         # Update HUD for button hover
         mouse_pos = pygame.mouse.get_pos()
-        dt = 1000 // FPS  # Calculate delta time from FPS
+        dt = self.clock.get_time()  # Get actual delta time from clock
         self.hud.update(mouse_pos, dt)
 
         # Update camera
@@ -376,12 +376,9 @@ class Game:
             [],  # No platforms - ground-based endless runner
         )
 
-        for coin in self.coins:
-            coin.update()
-        for hp in self.health_packs:
-            hp.update()
-        for pu in self.powerups:
-            pu.update()
+        self.coins.update()
+        self.health_packs.update()
+        self.powerups.update()
 
         # Check collectible collisions
         self._check_collectible_collisions()
@@ -409,8 +406,9 @@ class Game:
         # Add distance-based score (faster rate for more engaging gameplay)
         distance_traveled = max(0, (self.player.rect.x - self.start_x) / 25)
         distance_score = int(distance_traveled)
-        if distance_score > self.last_distance_score:
-            self.player.add_score(2)  # Give 2 points per distance unit
+        score_diff = distance_score - self.last_distance_score
+        if score_diff > 0:
+            self.player.add_score(2 * score_diff)  # Give 2 points per distance unit
             self.last_distance_score = distance_score
 
         # Update difficulty
