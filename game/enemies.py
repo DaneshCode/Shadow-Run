@@ -1671,6 +1671,10 @@ class EnemySpawner:
 
             # Check if we spawn at this interval
             if random.random() < spawn_chance:
+                if random.random() < swarm_chance:
+                    self._spawn_swarm_at(self.last_spawn_x, enemies)
+                    continue
+
                 # Decide spawn location: ground, ceiling, or flying
                 spawn_location = self._choose_spawn_location()
 

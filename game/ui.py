@@ -167,6 +167,7 @@ class HUD:
             ("JUMP", "SPACE / W / UP", (100, 200, 255)),
             ("FLIP GRAVITY", "SHIFT / S / DOWN / F", (200, 100, 255)),
             ("SHOOT", "CLICK / X / Z / CTRL", (255, 200, 100)),
+            ("GHOST", "RIGHT CLICK / C / G", INVISIBILITY_COLOR),
             ("PAUSE", "ESC / P", (200, 200, 200)),
         ]
         self.font_hint = pygame.font.Font(None, 22)
@@ -655,7 +656,7 @@ class MainMenu:
         # Instructions
         draw_text(
             surface,
-            "Auto-Run • SPACE to jump • Click to shoot (Limited Ammo!)",
+            "Auto-Run - SPACE to jump - Click to shoot (Limited Ammo!)",
             self.font_subtitle,
             GRAY,
             self.screen_width // 2,
@@ -1224,6 +1225,7 @@ class SettingsScreen:
             "Jump: SPACE / W / UP Arrow",
             "Flip Gravity: SHIFT / S / DOWN / F",
             "Shoot: LEFT CLICK / X / Z / CTRL",
+            "Ghost Mode: RIGHT CLICK / C / G",
             "Pause: ESC or P",
         ]
 
@@ -1306,7 +1308,7 @@ class TutorialScreen:
             ("JUMP", "Space  /  W  /  Up Arrow", UI_ACCENT),
             ("FLIP GRAVITY", "Shift  /  S  /  Down  /  F", PURPLE),
             ("SHOOT", "Click  /  X  /  Z  /  Ctrl", BULLET_COLOR),
-            ("GHOST MODE", "G  or  Click Button", INVISIBILITY_COLOR),
+            ("GHOST MODE", "Right Click  /  C  /  G  /  Button", INVISIBILITY_COLOR),
             ("PAUSE", "Escape  or  P", LIGHT_GRAY),
         ]
 
@@ -1339,8 +1341,8 @@ class TutorialScreen:
         tips_y = 480
         tips = [
             "FLIP GRAVITY to switch between ground and ceiling!",
-            "Enemies spawn on both surfaces • Time your flips wisely",
-            "You have 5 bullets • Ammo regenerates over time",
+            "Enemies spawn on both surfaces - time your flips wisely",
+            "You have 5 bullets - ammo regenerates over time",
             "GHOST MODE: Become invisible to pass through enemies! (15s charge)",
         ]
 

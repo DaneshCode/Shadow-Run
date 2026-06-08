@@ -4,10 +4,11 @@
 A professional 2D endless platformer game built with Pygame
 
 Controls:
-      "Jump: SPACE / W / UP Arrow",
-      "Flip Gravity: SHIFT / S / DOWN Arrow / F",
-      "Shoot: LEFT CLICK / X / Z / CTRL",
-      "Pause: ESC or P",
+      Jump: SPACE / W / UP Arrow
+      Flip Gravity: SHIFT / S / DOWN Arrow / F
+      Shoot: LEFT CLICK / X / Z / CTRL
+      Invisibility: RIGHT CLICK / C / G
+      Pause: ESC or P
 
 Features:
     - Endless procedurally generated world

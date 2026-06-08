@@ -42,6 +42,10 @@
     localStorage.setItem('gdd-theme', theme);
 
     // به‌روزرسانی متن دکمه تغییر
+    if (!themeToggle) {
+      return;
+    }
+
     const themeIcon = themeToggle.querySelector('.theme-icon');
     const themeText = themeToggle.querySelector('.theme-text');
 
@@ -72,6 +76,10 @@
    * تغییر نمایش نوار کناری موبایل
    */
   function toggleSidebar() {
+    if (!sidebar) {
+      return;
+    }
+
     sidebar.classList.toggle('open');
   }
 
@@ -79,6 +87,10 @@
    * بستن نوار کناری در موبایل
    */
   function closeSidebar() {
+    if (!sidebar) {
+      return;
+    }
+
     sidebar.classList.remove('open');
   }
 
@@ -392,6 +404,8 @@
     document.addEventListener('click', (event) => {
       if (window.innerWidth <= 1024) {
         if (
+          sidebar &&
+          navToggle &&
           !sidebar.contains(event.target) &&
           !navToggle.contains(event.target)
         ) {

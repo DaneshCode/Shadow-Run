@@ -24,8 +24,10 @@ class Leaderboard:
         self.entries = []
         self.max_entries = MAX_LEADERBOARD_ENTRIES
 
-        # Ensure data directory exists
-        os.makedirs(os.path.dirname(filepath), exist_ok=True)
+        # Ensure data directory exists when the file path includes one.
+        data_dir = os.path.dirname(filepath)
+        if data_dir:
+            os.makedirs(data_dir, exist_ok=True)
 
         # Load existing scores
         self.load()
@@ -34,7 +36,7 @@ class Leaderboard:
         """Load leaderboard from file"""
         try:
             if os.path.exists(self.filepath):
-                with open(self.filepath, "r") as f:
+                with open(self.filepath, "r", encoding="utf-8") as f:
                     data = json.load(f)
                     self.entries = data.get("entries", [])
             else:
@@ -46,8 +48,8 @@ class Leaderboard:
     def save(self):
         """Save leaderboard to file"""
         try:
-            with open(self.filepath, "w") as f:
-                json.dump({"entries": self.entries}, f, indent=2)
+            with open(self.filepath, "w", encoding="utf-8") as f:
+                json.dump({"entries": self.entries}, f, indent=2, ensure_ascii=False)
         except IOError as e:
             print(f"Error saving leaderboard: {e}")
 

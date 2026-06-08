@@ -48,6 +48,9 @@ class AmbientMixer:
 
     def load_ambient_tracks(self):
         """Load ambient audio tracks"""
+        if not self.sound_manager.audio_available:
+            return
+
         audio_path = "assets/audio"
 
         # Load horror ambience (OGG format - compressed)
@@ -55,21 +58,24 @@ class AmbientMixer:
         if os.path.exists(horror_path):
             try:
                 self.horror_sound = pygame.mixer.Sound(horror_path)
-                print(f"✓ Loaded: {horror_path}")
+                print(f"[OK] Loaded: {horror_path}")
             except pygame.error as e:
-                print(f"✗ Could not load {horror_path}: {e}")
+                print(f"[ERROR] Could not load {horror_path}: {e}")
 
         # Load pond ambience (OGG format - compressed)
         pond_path = os.path.join(audio_path, "pond-ambience.ogg")
         if os.path.exists(pond_path):
             try:
                 self.pond_sound = pygame.mixer.Sound(pond_path)
-                print(f"✓ Loaded: {pond_path}")
+                print(f"[OK] Loaded: {pond_path}")
             except pygame.error as e:
-                print(f"✗ Could not load {pond_path}: {e}")
+                print(f"[ERROR] Could not load {pond_path}: {e}")
 
     def start_ambient_mix(self):
         """Start playing the layered ambient mix"""
+        if not self.sound_manager.audio_available:
+            return
+
         if not self.horror_sound and not self.pond_sound:
             return
 
@@ -227,12 +233,19 @@ class SoundManager:
 
     def __init__(self):
         """Initialize the sound manager"""
-        # Initialize pygame mixer with high quality settings
-        pygame.mixer.init(frequency=44100, size=-16, channels=2, buffer=512)
-
-        # Volume settings
+        # Volume settings are kept even when audio cannot initialize so menus still
+        # behave consistently.
         self.music_volume = MUSIC_VOLUME
         self.sfx_volume = SFX_VOLUME
+
+        self.audio_available = True
+
+        # Initialize pygame mixer with high quality settings
+        try:
+            pygame.mixer.init(frequency=44100, size=-16, channels=2, buffer=512)
+        except pygame.error as e:
+            print(f"Audio disabled: {e}")
+            self.audio_available = False
 
         # Sound effect cache
         self.sounds = {}
@@ -245,7 +258,8 @@ class SoundManager:
         self.ambient_mixer = AmbientMixer(self)
 
         # Load sounds
-        self._load_sounds()
+        if self.audio_available:
+            self._load_sounds()
 
         # Load and initialize ambient tracks
         self.ambient_mixer.load_ambient_tracks()
@@ -274,6 +288,10 @@ class SoundManager:
             name: Name to reference the sound
             path: Path to the sound file
         """
+        if not self.audio_available:
+            self.sounds[name] = None
+            return
+
         if os.path.exists(path):
             try:
                 sound = pygame.mixer.Sound(path)
@@ -294,6 +312,9 @@ class SoundManager:
             name: Name of the sound to play
             volume: Optional volume override (0.0 to 1.0)
         """
+        if not self.audio_available:
+            return
+
         if name in self.sounds and self.sounds[name]:
             sound = self.sounds[name]
             if volume is not None:
@@ -304,12 +325,20 @@ class SoundManager:
 
     def pause_music(self):
         """Pause the current music and ambient audio"""
+        if not self.audio_available:
+            self.music_paused = True
+            return
+
         pygame.mixer.music.pause()
         self.ambient_mixer.pause()
         self.music_paused = True
 
     def unpause_music(self):
         """Unpause the current music and ambient audio"""
+        if not self.audio_available:
+            self.music_paused = False
+            return
+
         pygame.mixer.music.unpause()
         self.ambient_mixer.unpause()
         self.music_paused = False
@@ -348,7 +377,8 @@ class SoundManager:
             volume: Volume level (0.0 to 1.0)
         """
         self.music_volume = max(0.0, min(1.0, volume))
-        pygame.mixer.music.set_volume(self.music_volume)
+        if self.audio_available:
+            pygame.mixer.music.set_volume(self.music_volume)
 
     def set_sfx_volume(self, volume):
         """
@@ -358,6 +388,9 @@ class SoundManager:
             volume: Volume level (0.0 to 1.0)
         """
         self.sfx_volume = max(0.0, min(1.0, volume))
+
+        if not self.audio_available:
+            return
 
         # Update all loaded sounds
         for sound in self.sounds.values():
@@ -369,6 +402,9 @@ class SoundManager:
         Create simple procedural sound effects when no audio files exist
         This provides basic audio feedback without external files
         """
+        if not self.audio_available:
+            return
+
         import array
         import math
 
@@ -387,7 +423,7 @@ class SoundManager:
         try:
             self.sounds["jump"] = pygame.mixer.Sound(buffer=jump_array)
             self.sounds["jump"].set_volume(self.sfx_volume * 0.5)
-        except:
+        except (pygame.error, ValueError):
             pass
 
         # Coin sound (pleasant ding)
@@ -403,7 +439,7 @@ class SoundManager:
         try:
             self.sounds["coin"] = pygame.mixer.Sound(buffer=coin_array)
             self.sounds["coin"].set_volume(self.sfx_volume * 0.4)
-        except:
+        except (pygame.error, ValueError):
             pass
 
         # Hurt sound (low buzz)
@@ -419,7 +455,7 @@ class SoundManager:
         try:
             self.sounds["hurt"] = pygame.mixer.Sound(buffer=hurt_array)
             self.sounds["hurt"].set_volume(self.sfx_volume * 0.5)
-        except:
+        except (pygame.error, ValueError):
             pass
 
         # Click sound
@@ -434,7 +470,7 @@ class SoundManager:
         try:
             self.sounds["click"] = pygame.mixer.Sound(buffer=click_array)
             self.sounds["click"].set_volume(self.sfx_volume * 0.3)
-        except:
+        except (pygame.error, ValueError):
             pass
 
         # Shoot sound (sharp pew)
@@ -450,7 +486,7 @@ class SoundManager:
         try:
             self.sounds["shoot"] = pygame.mixer.Sound(buffer=shoot_array)
             self.sounds["shoot"].set_volume(self.sfx_volume * 0.4)
-        except:
+        except (pygame.error, ValueError):
             pass
 
         # Hit sound (impact thud)
@@ -470,7 +506,7 @@ class SoundManager:
         try:
             self.sounds["hit"] = pygame.mixer.Sound(buffer=hit_array)
             self.sounds["hit"].set_volume(self.sfx_volume * 0.4)
-        except:
+        except (pygame.error, ValueError):
             pass
 
         # Enemy death sound
@@ -486,7 +522,7 @@ class SoundManager:
         try:
             self.sounds["enemy_death"] = pygame.mixer.Sound(buffer=death_array)
             self.sounds["enemy_death"].set_volume(self.sfx_volume * 0.4)
-        except:
+        except (pygame.error, ValueError):
             pass
 
         # Death sound (low descending)
@@ -502,7 +538,7 @@ class SoundManager:
         try:
             self.sounds["death"] = pygame.mixer.Sound(buffer=player_death_array)
             self.sounds["death"].set_volume(self.sfx_volume * 0.5)
-        except:
+        except (pygame.error, ValueError):
             pass
 
         # Powerup sound (rising melody)
@@ -518,7 +554,7 @@ class SoundManager:
         try:
             self.sounds["powerup"] = pygame.mixer.Sound(buffer=powerup_array)
             self.sounds["powerup"].set_volume(self.sfx_volume * 0.4)
-        except:
+        except (pygame.error, ValueError):
             pass
 
     def create_procedural_music(self):
@@ -526,6 +562,9 @@ class SoundManager:
         Create procedural background music for the game
         This generates a dark ambient loop that plays continuously
         """
+        if not self.audio_available:
+            return
+
         import array
         import math
         import random

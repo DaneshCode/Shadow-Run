@@ -236,7 +236,7 @@ class Player(pygame.sprite.Sprite):
             return
 
         # Auto-run: always running right with speed scaled by difficulty
-        self.acceleration_x = PLAYER_ACCELERATION
+        self.acceleration_x = 0
         self.facing_right = True
         self.is_running = True
         self.velocity_x = AUTO_RUN_SPEED * game_speed  # Speed increases with difficulty
@@ -301,6 +301,10 @@ class Player(pygame.sprite.Sprite):
         if self.is_dead:
             return False
 
+        current_time = pygame.time.get_ticks()
+        if current_time - self.last_flip_time < GRAVITY_FLIP_COOLDOWN:
+            return False
+
         # Only flip if not in transition
         if self.flip_transition > 0:
             return False
@@ -318,6 +322,7 @@ class Player(pygame.sprite.Sprite):
         self.on_ground = False
         self.on_ceiling = False
         self.is_jumping = True
+        self.last_flip_time = current_time
 
         return True
 
@@ -326,8 +331,10 @@ class Player(pygame.sprite.Sprite):
         self.can_jump = True
 
         # Variable jump height - cut jump short if released early
-        if self.velocity_y < -5:
+        if not self.gravity_flipped and self.velocity_y < -5:
             self.velocity_y = -5
+        elif self.gravity_flipped and self.velocity_y > 5:
+            self.velocity_y = 5
 
     def update(self, platforms, ceiling_platforms=None):
         """
@@ -346,8 +353,12 @@ class Player(pygame.sprite.Sprite):
         if not self.is_running:
             self.velocity_x *= FRICTION
 
-        # Clamp horizontal velocity
-        self.velocity_x = clamp(self.velocity_x, -PLAYER_SPEED, PLAYER_SPEED)
+        # Clamp horizontal velocity, allowing the difficulty speed curve to reach
+        # its configured cap in auto-run mode.
+        max_horizontal_speed = max(PLAYER_SPEED, AUTO_RUN_SPEED * MAX_GAME_SPEED)
+        self.velocity_x = clamp(
+            self.velocity_x, -max_horizontal_speed, max_horizontal_speed
+        )
 
         # Stop if velocity is very small
         if abs(self.velocity_x) < 0.1:
@@ -606,6 +617,7 @@ class Player(pygame.sprite.Sprite):
         self.gravity_direction = 1
         self.flip_transition = 0
         self.last_flip_time = 0
+        self.flip_key_released = True
 
         self.facing_right = True
         self.current_animation = "idle"
@@ -681,11 +693,12 @@ class Player(pygame.sprite.Sprite):
             self.last_shot_time = current_time
             self.ammo -= 1  # Use one ammo
 
-            # Create bullet at player's lower body (where enemies are)
-            # Bullet spawn offset scaled for larger player
+            # Create bullet near the surface the player is running on.
             bullet_x = self.rect.centerx + (60 if self.facing_right else -60)
-            # Shoot at lower body height (closer to feet) to hit ground enemies
-            bullet_y = self.rect.bottom - 60  # Near player's feet level
+            if self.gravity_flipped:
+                bullet_y = self.rect.top + 60
+            else:
+                bullet_y = self.rect.bottom - 60
             direction = 1 if self.facing_right else -1
 
             bullet = Bullet(bullet_x, bullet_y, direction)

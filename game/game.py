@@ -4,26 +4,11 @@ Main game class that coordinates all game systems
 """
 
 import pygame
-import math
 from game.settings import *
 from game.player import Player
-from game.platforms import Ground, Ceiling, WorldGenerator
-from game.enemies import (
-    Enemy,
-    ChaserEnemy,
-    ShooterEnemy,
-    BerserkerEnemy,
-    CeilingEnemy,
-    CeilingChaserEnemy,
-    CeilingShooterEnemy,
-    CeilingGhostEnemy,
-    FlyingEnemy,
-    GhostEnemy,
-    TeleporterEnemy,
-    SpiderEnemy,
-    EnemySpawner,
-)
-from game.collectibles import Coin, HealthPack, PowerUp, CollectibleSpawner
+from game.platforms import WorldGenerator
+from game.enemies import EnemySpawner
+from game.collectibles import CollectibleSpawner
 from game.difficulty import DifficultyManager
 from game.camera import Camera
 from game.sound import SoundManager
@@ -218,13 +203,13 @@ class Game:
         if self.state == STATE_PLAYING and event.button == 1:  # Left click
             # Check if clicked on invisibility button first
             if self.hud.check_invisibility_click(event.pos):
-                if self.player.activate_invisibility():
-                    self.sound_manager.play_sound("powerup")
-                    self.visual_effects.flash((100, 200, 255), 20)
+                self._activate_invisibility()
             else:
                 # Otherwise shoot
                 if self.player.shoot():
                     self.sound_manager.play_sound("shoot")
+        elif self.state == STATE_PLAYING and event.button == 3:  # Right click
+            self._activate_invisibility()
         elif self.state == STATE_TUTORIAL:
             self.start_playing()
 
@@ -266,11 +251,17 @@ class Game:
                 if self.player.shoot():
                     self.sound_manager.play_sound("shoot")
 
-        elif event.key == pygame.K_g:  # G for Ghost/Invisibility
+        elif event.key in [pygame.K_g, pygame.K_c]:  # Ghost/Invisibility
             if self.state == STATE_PLAYING:
-                if self.player.activate_invisibility():
-                    self.sound_manager.play_sound("powerup")
-                    self.visual_effects.flash((100, 200, 255), 20)
+                self._activate_invisibility()
+
+    def _activate_invisibility(self):
+        """Activate player invisibility and play feedback if the charge is ready."""
+        if self.player.activate_invisibility():
+            self.sound_manager.play_sound("powerup")
+            self.visual_effects.flash((100, 200, 255), 20)
+            return True
+        return False
 
     def _handle_keyup(self, event):
         """Handle key release events"""
@@ -366,26 +357,12 @@ class Game:
         # Update all ground/flying enemies
         for enemy in self.enemies:
             enemy.update(self.player, None)
-
-            # Check for shooter projectiles (skip if player is invisible)
-            if isinstance(enemy, ShooterEnemy) and not self.player.is_invisible:
-                for proj in enemy.projectiles:
-                    if self.player.collision_rect.colliderect(proj.rect):
-                        if self.player.take_damage(proj.damage):
-                            self.sound_manager.play_sound("hurt")
-                            self.sound_manager.pulse_horror_audio()
-                            self.camera.shake(8, 15)
-                            self.particle_system.emit(
-                                self.player.rect.centerx,
-                                self.player.rect.centery,
-                                RED,
-                                count=15,
-                            )
-                        proj.is_dead = True
+            self._check_enemy_projectile_collisions(enemy)
 
         # Update ceiling enemies
         for enemy in self.ceiling_enemies:
             enemy.update(self.player, None)
+            self._check_enemy_projectile_collisions(enemy)
 
         # Check enemy collisions (both ground and ceiling enemies)
         self._check_enemy_collisions()
@@ -529,6 +506,29 @@ class Game:
                             RED,
                             count=15,
                         )
+
+    def _check_enemy_projectile_collisions(self, enemy):
+        """Apply damage from any enemy-owned projectiles."""
+        if self.player.is_invisible or not hasattr(enemy, "projectiles"):
+            return
+
+        for proj in list(enemy.projectiles):
+            if self.player.collision_rect.colliderect(proj.rect):
+                if self.player.take_damage(proj.damage):
+                    self.sound_manager.play_sound("hurt")
+                    self.sound_manager.pulse_horror_audio()
+                    self.camera.shake(8, 15)
+                    self.visual_effects.flash(RED, 35)
+                    self.particle_system.emit(
+                        self.player.rect.centerx,
+                        self.player.rect.centery,
+                        RED,
+                        count=15,
+                    )
+
+                proj.is_dead = True
+                if proj in enemy.projectiles:
+                    enemy.projectiles.remove(proj)
 
     def _check_bullet_enemy_collisions(self):
         """Check collisions between player bullets and enemies (all types)"""
