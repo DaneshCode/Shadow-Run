@@ -1,0 +1,1980 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Game Design Document for Shadow Run: Endless Nightmare - A dark horror-themed endless runner"
+    />
+    <meta name="author" content="Shadow Run Development Team" />
+    <title>SHADOW RUN: Endless Nightmare — Game Design Document</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <!-- Navigation Sidebar -->
+    <nav class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <h2>GDD Navigation</h2>
+        <button
+          class="nav-toggle"
+          id="navToggle"
+          aria-label="Toggle navigation"
+        >
+          ☰
+        </button>
+      </div>
+      <ul class="nav-list">
+        <li><a href="#cover">Cover Page</a></li>
+        <li><a href="#overview">1. Game Overview</a></li>
+        <li><a href="#gameplay">2. Core Gameplay</a></li>
+        <li><a href="#controls">3. Controls</a></li>
+        <li><a href="#enemies">4. Enemies</a></li>
+        <li><a href="#systems">5. Game Systems</a></li>
+        <li><a href="#level-design">6. Level & World Design</a></li>
+        <li><a href="#art">7. Art & Visual Style</a></li>
+        <li><a href="#audio">8. Audio Design</a></li>
+        <li><a href="#ui-ux">9. UI/UX Design</a></li>
+        <li><a href="#technical">10. Technical Design</a></li>
+        <li><a href="#future">11. Future Improvements</a></li>
+      </ul>
+      <div class="sidebar-footer">
+        <button
+          class="theme-toggle"
+          id="themeToggle"
+          aria-label="Toggle dark mode"
+        >
+          <span class="theme-icon">🌙</span>
+          <span class="theme-text">Dark Mode</span>
+        </button>
+      </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="content">
+      <!-- Cover Page -->
+      <section id="cover" class="cover-page">
+        <div class="cover-content">
+          <div class="game-logo">
+            <h1 class="game-title">SHADOW RUN</h1>
+            <p class="game-subtitle">Endless Nightmare</p>
+          </div>
+          <div class="document-info">
+            <h2>Game Design Document</h2>
+            <p class="version">Version 1.0</p>
+            <p class="date">Document Date: February 2026</p>
+          </div>
+          <div class="metadata">
+            <table class="info-table">
+              <tr>
+                <th>Genre</th>
+                <td>Horror Endless Runner / Action</td>
+              </tr>
+              <tr>
+                <th>Platform</th>
+                <td>Desktop (Windows, macOS, Linux)</td>
+              </tr>
+              <tr>
+                <th>Engine</th>
+                <td>Python / Pygame</td>
+              </tr>
+              <tr>
+                <th>Target Audience</th>
+                <td>Teen to Adult (13+)</td>
+              </tr>
+            </table>
+          </div>
+          <p class="confidential">Made by : Danesh khodadadzadeh</p>
+        </div>
+      </section>
+
+      <!-- Table of Contents -->
+      <section class="toc page-break-before">
+        <h2>Table of Contents</h2>
+        <ol class="toc-list">
+          <li><a href="#overview">Game Overview</a></li>
+          <li><a href="#gameplay">Core Gameplay</a></li>
+          <li><a href="#controls">Controls</a></li>
+          <li><a href="#enemies">Enemies</a></li>
+          <li><a href="#systems">Game Systems</a></li>
+          <li><a href="#level-design">Level & World Design</a></li>
+          <li><a href="#art">Art & Visual Style</a></li>
+          <li><a href="#audio">Audio Design</a></li>
+          <li><a href="#ui-ux">UI/UX Design</a></li>
+          <li><a href="#technical">Technical Design</a></li>
+          <li><a href="#future">Future Improvements</a></li>
+        </ol>
+      </section>
+
+      <!-- Section 1: Game Overview -->
+      <section id="overview" class="gdd-section page-break-before">
+        <h2><span class="section-number">1</span> Game Overview</h2>
+
+        <article class="subsection">
+          <h3>1.1 Game Title</h3>
+          <p><strong>SHADOW RUN: Endless Nightmare</strong></p>
+        </article>
+
+        <article class="subsection">
+          <h3>1.2 Genre</h3>
+          <p>
+            Horror-themed Endless Runner with Action and Shooter elements. The
+            game combines the fast-paced, reflex-driven gameplay of classic
+            endless runners with dark horror aesthetics, strategic shooting
+            mechanics, and a unique gravity-flip system.
+          </p>
+        </article>
+
+        <article class="subsection">
+          <h3>1.3 Platform(s)</h3>
+          <ul>
+            <li><strong>Primary:</strong> Desktop (Windows, macOS, Linux)</li>
+            <li>
+              <strong>Display:</strong> 1280×720 native resolution, scalable
+            </li>
+            <li><strong>Input:</strong> Keyboard and Mouse</li>
+          </ul>
+        </article>
+
+        <article class="subsection">
+          <h3>1.4 Target Audience</h3>
+          <div class="info-box">
+            <h4>Demographics</h4>
+            <ul>
+              <li><strong>Age Range:</strong> 13+ (Teen to Adult)</li>
+              <li>
+                <strong>Player Type:</strong> Casual to mid-core gamers who
+                enjoy arcade-style games with high replayability
+              </li>
+              <li>
+                <strong>Interests:</strong> Horror themes, fast-paced action,
+                high-score chasing, reflex-based gameplay
+              </li>
+            </ul>
+          </div>
+          <p>
+            The game appeals to players who enjoy titles such as
+            <em>Canabalt</em>, <em>Jetpack Joyride</em>, <em>Limbo</em>, and
+            <em>Dead Cells</em>—combining accessibility with depth and a
+            distinct visual atmosphere.
+          </p>
+        </article>
+
+        <article class="subsection">
+          <h3>1.5 Core Concept & Unique Hook</h3>
+          <div class="highlight-box">
+            <h4>Elevator Pitch</h4>
+            <p>
+              <em
+                >"Run through an endless nightmare, flipping between ground and
+                ceiling to survive waves of horrific creatures in a dark,
+                atmospheric world where every second counts."</em
+              >
+            </p>
+          </div>
+
+          <h4>Key Differentiators</h4>
+          <ul>
+            <li>
+              <strong>Gravity Flip Mechanic:</strong> Players can instantly flip
+              between the ground and ceiling, opening unique traversal and
+              combat strategies
+            </li>
+            <li>
+              <strong>Strategic Shooting:</strong> Limited ammunition with
+              regeneration forces players to choose engagements carefully
+            </li>
+            <li>
+              <strong>Invisibility System:</strong> A charge-based stealth
+              mechanic allows tactical evasion
+            </li>
+            <li>
+              <strong>Progressive Horror:</strong> Difficulty scales smoothly
+              with score, introducing new enemy types and patterns
+            </li>
+            <li>
+              <strong>Dark Atmospheric Design:</strong> A cohesive horror visual
+              identity with parallax backgrounds, fog effects, and ambient audio
+            </li>
+          </ul>
+        </article>
+
+        <article class="subsection">
+          <h3>1.6 Design Pillars</h3>
+          <div class="pillar-grid">
+            <div class="pillar">
+              <h4>🎮 Accessibility</h4>
+              <p>
+                Simple controls that are easy to learn but offer depth through
+                mastery of timing and positioning.
+              </p>
+            </div>
+            <div class="pillar">
+              <h4>⚡ Tension</h4>
+              <p>
+                Constant forward momentum and limited resources create
+                persistent pressure and excitement.
+              </p>
+            </div>
+            <div class="pillar">
+              <h4>🔄 Replayability</h4>
+              <p>
+                Procedural generation, leaderboards, and progressive difficulty
+                ensure every run feels fresh.
+              </p>
+            </div>
+            <div class="pillar">
+              <h4>🌑 Atmosphere</h4>
+              <p>
+                Dark horror aesthetics and ambient audio create an immersive
+                nightmare experience.
+              </p>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <!-- Section 2: Core Gameplay -->
+      <section id="gameplay" class="gdd-section page-break-before">
+        <h2><span class="section-number">2</span> Core Gameplay</h2>
+
+        <article class="subsection">
+          <h3>2.1 Endless Runner Structure</h3>
+          <p>
+            Shadow Run follows the endless runner paradigm where the player
+            character automatically moves forward through a procedurally
+            generated world. The game continues indefinitely until the player's
+            health reaches zero.
+          </p>
+
+          <div class="feature-box">
+            <h4>Core Loop</h4>
+            <ol>
+              <li>
+                <strong>Run:</strong> The player automatically moves forward at
+                an increasing pace
+              </li>
+              <li>
+                <strong>React:</strong> Obstacles and enemies approach; player
+                must respond
+              </li>
+              <li>
+                <strong>Survive:</strong> Use jumping, shooting, and
+                gravity-flipping to stay alive
+              </li>
+              <li>
+                <strong>Score:</strong> Distance traveled and enemies defeated
+                contribute to score
+              </li>
+              <li>
+                <strong>Repeat:</strong> Death leads to score submission and
+                restart option
+              </li>
+            </ol>
+          </div>
+        </article>
+
+        <article class="subsection">
+          <h3>2.2 Automatic Forward Movement</h3>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Parameter</th>
+                <th>Value</th>
+                <th>Description</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Base Auto-Run Speed</td>
+                <td>4 units/frame</td>
+                <td>Initial horizontal movement speed</td>
+              </tr>
+              <tr>
+                <td>Base Game Speed</td>
+                <td>1.0×</td>
+                <td>Starting multiplier for all game systems</td>
+              </tr>
+              <tr>
+                <td>Maximum Game Speed</td>
+                <td>2.0×</td>
+                <td>Cap on speed scaling to maintain playability</td>
+              </tr>
+              <tr>
+                <td>Speed Curve Steepness</td>
+                <td>0.0003</td>
+                <td>Controls how gradually speed increases</td>
+              </tr>
+            </tbody>
+          </table>
+          <p>
+            Game speed increases smoothly based on the player's score, creating
+            natural difficulty progression without jarring transitions.
+          </p>
+        </article>
+
+        <article class="subsection">
+          <h3>2.3 Jumping Mechanics</h3>
+          <div class="mechanic-card">
+            <h4>Jump System</h4>
+            <ul>
+              <li><strong>Jump Power:</strong> -16 units (upward velocity)</li>
+              <li><strong>Gravity:</strong> 0.8 units/frame²</li>
+              <li><strong>Maximum Fall Speed:</strong> 18 units/frame</li>
+              <li>
+                <strong>Ground Detection:</strong> Collision-based with platform
+                surfaces
+              </li>
+            </ul>
+          </div>
+          <p>
+            Jumping is the primary defensive action, allowing players to avoid
+            ground-based enemies and hazards. The jump arc is designed to feel
+            responsive yet weighty, giving players precise control over their
+            trajectory.
+          </p>
+        </article>
+
+        <article class="subsection">
+          <h3>2.4 Shooting Mechanics</h3>
+          <div class="mechanic-card">
+            <h4>Projectile System</h4>
+            <table class="data-table">
+              <tbody>
+                <tr>
+                  <td>Bullet Speed</td>
+                  <td>18 units/frame</td>
+                </tr>
+                <tr>
+                  <td>Bullet Damage</td>
+                  <td>50 HP</td>
+                </tr>
+                <tr>
+                  <td>Bullet Size</td>
+                  <td>20 pixels</td>
+                </tr>
+                <tr>
+                  <td>Cooldown</td>
+                  <td>250ms between shots</td>
+                </tr>
+                <tr>
+                  <td>Bullet Lifetime</td>
+                  <td>2000ms</td>
+                </tr>
+                <tr>
+                  <td>Maximum Ammo</td>
+                  <td>5 bullets</td>
+                </tr>
+                <tr>
+                  <td>Ammo Regeneration</td>
+                  <td>1 bullet per 10 seconds</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p>
+            The limited ammunition system forces strategic decision-making.
+            Players must evaluate threats and choose when to engage versus when
+            to evade, adding a layer of resource management to the reflex-based
+            gameplay.
+          </p>
+        </article>
+
+        <article class="subsection">
+          <h3>2.5 Gravity Flip Mechanic</h3>
+          <div class="highlight-box accent">
+            <h4>Signature Feature</h4>
+            <p>
+              The gravity flip mechanic is the defining feature that sets Shadow
+              Run apart from traditional endless runners.
+            </p>
+          </div>
+
+          <h4>How It Works</h4>
+          <ol>
+            <li>Player activates gravity flip via input</li>
+            <li>Gravity direction inverts (ground ↔ ceiling)</li>
+            <li>Player character rotates 180° during transition</li>
+            <li>Player lands on the opposite surface</li>
+          </ol>
+
+          <table class="data-table">
+            <tbody>
+              <tr>
+                <td>Flip Transition Speed</td>
+                <td>25 units</td>
+              </tr>
+              <tr>
+                <td>Flip Cooldown</td>
+                <td>100ms minimum between flips</td>
+              </tr>
+              <tr>
+                <td>Transition Duration</td>
+                <td>15 frames animation</td>
+              </tr>
+              <tr>
+                <td>Ceiling Height</td>
+                <td>100 pixels (mirrors ground)</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h4>Strategic Applications</h4>
+          <ul>
+            <li>Evade ground enemies by flipping to ceiling</li>
+            <li>Access ceiling-only paths and collectibles</li>
+            <li>Engage ceiling enemies on their terrain</li>
+            <li>Create vertical distance from projectiles</li>
+            <li>Chain flips for advanced traversal patterns</li>
+          </ul>
+        </article>
+
+        <article class="subsection">
+          <h3>2.6 Risk vs. Reward Philosophy</h3>
+          <div class="info-box">
+            <h4>Design Intent</h4>
+            <p>
+              Every player action involves weighing potential gains against
+              dangers:
+            </p>
+            <ul>
+              <li>
+                <strong>Shooting:</strong> Eliminates threats but depletes
+                limited ammo
+              </li>
+              <li>
+                <strong>Gravity Flip:</strong> Evades current threats but may
+                introduce new ones
+              </li>
+              <li>
+                <strong>Collecting Coins:</strong> Increases score but may
+                require risky positioning
+              </li>
+              <li>
+                <strong>Using Invisibility:</strong> Provides safety but has
+                long charge time
+              </li>
+            </ul>
+          </div>
+        </article>
+      </section>
+
+      <!-- Section 3: Controls -->
+      <section id="controls" class="gdd-section page-break-before">
+        <h2><span class="section-number">3</span> Controls</h2>
+
+        <article class="subsection">
+          <h3>3.1 Input Mapping</h3>
+          <table class="data-table controls-table">
+            <thead>
+              <tr>
+                <th>Action</th>
+                <th>Primary Input</th>
+                <th>Alternative Inputs</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>Jump</strong></td>
+                <td>SPACE</td>
+                <td>W, UP Arrow</td>
+              </tr>
+              <tr>
+                <td><strong>Gravity Flip</strong></td>
+                <td>SHIFT</td>
+                <td>S, DOWN Arrow, F</td>
+              </tr>
+              <tr>
+                <td><strong>Shoot</strong></td>
+                <td>Left Mouse Click</td>
+                <td>X, Z, CTRL</td>
+              </tr>
+              <tr>
+                <td><strong>Invisibility</strong></td>
+                <td>Click HUD Button</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td><strong>Pause / Resume</strong></td>
+                <td>ESC</td>
+                <td>P</td>
+              </tr>
+            </tbody>
+          </table>
+        </article>
+
+        <article class="subsection">
+          <h3>3.2 Control Philosophy</h3>
+          <div class="two-column">
+            <div class="column">
+              <h4>Design Goals</h4>
+              <ul>
+                <li>Minimal button count (3 core actions)</li>
+                <li>Immediate response to input</li>
+                <li>Multiple input options for accessibility</li>
+                <li>Left-hand keyboard, right-hand mouse layout</li>
+              </ul>
+            </div>
+            <div class="column">
+              <h4>Accessibility Considerations</h4>
+              <ul>
+                <li>Both hands can perform all actions</li>
+                <li>No simultaneous button presses required</li>
+                <li>Clear visual feedback for all inputs</li>
+                <li>Customizable controls (future)</li>
+              </ul>
+            </div>
+          </div>
+        </article>
+
+        <article class="subsection">
+          <h3>3.3 Input Assumptions</h3>
+          <p>
+            The game is designed for desktop play with standard keyboard and
+            mouse. Controller support is not currently implemented but is
+            planned for future updates.
+          </p>
+
+          <div class="info-box">
+            <h4>Recommended Setup</h4>
+            <ul>
+              <li>
+                <strong>Left Hand:</strong> Keyboard (SPACE for jump, SHIFT for
+                flip)
+              </li>
+              <li>
+                <strong>Right Hand:</strong> Mouse (aim and click to shoot)
+              </li>
+            </ul>
+          </div>
+        </article>
+      </section>
+
+      <!-- Section 4: Enemies -->
+      <section id="enemies" class="gdd-section page-break-before">
+        <h2><span class="section-number">4</span> Enemies</h2>
+
+        <article class="subsection">
+          <h3>4.1 Enemy Overview</h3>
+          <p>
+            Enemies in Shadow Run are designed to create varied challenges that
+            test different player skills. Each enemy type has distinct visual
+            design, behavior patterns, and threat levels.
+          </p>
+
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Base Stats</th>
+                <th>Value</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Enemy Size</td>
+                <td>100×100 pixels</td>
+              </tr>
+              <tr>
+                <td>Base Speed</td>
+                <td>2 units/frame</td>
+              </tr>
+              <tr>
+                <td>Base Damage</td>
+                <td>20 HP</td>
+              </tr>
+              <tr>
+                <td>Spawn Distance</td>
+                <td>800 pixels ahead of player</td>
+              </tr>
+            </tbody>
+          </table>
+        </article>
+
+        <article class="subsection">
+          <h3>4.2 Ground-Based Enemies</h3>
+
+          <div class="enemy-card">
+            <h4>🔴 Basic Enemy (Slime)</h4>
+            <p class="enemy-desc">
+              Simple patrol enemy that moves back and forth within a set range.
+            </p>
+            <table class="data-table compact">
+              <tr>
+                <td>Health</td>
+                <td>1 HP (one-shot)</td>
+              </tr>
+              <tr>
+                <td>Damage</td>
+                <td>20 HP</td>
+              </tr>
+              <tr>
+                <td>Behavior</td>
+                <td>Horizontal patrol</td>
+              </tr>
+              <tr>
+                <td>Patrol Range</td>
+                <td>100 pixels</td>
+              </tr>
+              <tr>
+                <td>Unlock Score</td>
+                <td>0 (available from start)</td>
+              </tr>
+            </table>
+          </div>
+
+          <div class="enemy-card">
+            <h4>🟠 Chaser Enemy</h4>
+            <p class="enemy-desc">
+              Aggressive enemy that detects the player and pursues at high
+              speed.
+            </p>
+            <table class="data-table compact">
+              <tr>
+                <td>Health</td>
+                <td>1 HP</td>
+              </tr>
+              <tr>
+                <td>Damage</td>
+                <td>30 HP (1.5× base)</td>
+              </tr>
+              <tr>
+                <td>Detection Range</td>
+                <td>300 pixels</td>
+              </tr>
+              <tr>
+                <td>Chase Speed</td>
+                <td>4 units/frame (2× base)</td>
+              </tr>
+              <tr>
+                <td>Unlock Score</td>
+                <td>500 points</td>
+              </tr>
+            </table>
+          </div>
+
+          <div class="enemy-card">
+            <h4>🔵 Shooter Enemy (Turret)</h4>
+            <p class="enemy-desc">
+              Stationary enemy that fires projectiles at the player.
+            </p>
+            <table class="data-table compact">
+              <tr>
+                <td>Health</td>
+                <td>1 HP</td>
+              </tr>
+              <tr>
+                <td>Projectile Damage</td>
+                <td>10 HP</td>
+              </tr>
+              <tr>
+                <td>Detection Range</td>
+                <td>400 pixels</td>
+              </tr>
+              <tr>
+                <td>Fire Rate</td>
+                <td>1 shot per 2 seconds</td>
+              </tr>
+              <tr>
+                <td>Projectile Speed</td>
+                <td>6 units/frame</td>
+              </tr>
+              <tr>
+                <td>Unlock Score</td>
+                <td>1500 points</td>
+              </tr>
+            </table>
+          </div>
+
+          <div class="enemy-card">
+            <h4>🟣 Berserker Enemy</h4>
+            <p class="enemy-desc">
+              Large, dangerous enemy that charges at the player after a brief
+              wind-up.
+            </p>
+            <table class="data-table compact">
+              <tr>
+                <td>Health</td>
+                <td>3 HP (requires multiple hits)</td>
+              </tr>
+              <tr>
+                <td>Damage</td>
+                <td>40 HP (2× base)</td>
+              </tr>
+              <tr>
+                <td>Detection Range</td>
+                <td>500 pixels</td>
+              </tr>
+              <tr>
+                <td>Charge Speed</td>
+                <td>8 units/frame (4× base)</td>
+              </tr>
+              <tr>
+                <td>Wind-up Time</td>
+                <td>30 frames (~0.5 seconds)</td>
+              </tr>
+              <tr>
+                <td>Charge Duration</td>
+                <td>90 frames (~1.5 seconds)</td>
+              </tr>
+              <tr>
+                <td>Unlock Score</td>
+                <td>3000 points</td>
+              </tr>
+            </table>
+          </div>
+
+          <div class="enemy-card">
+            <h4>👻 Ghost Enemy</h4>
+            <p class="enemy-desc">
+              Ethereal enemy that phases in and out of visibility. Immune to
+              damage when phased.
+            </p>
+            <table class="data-table compact">
+              <tr>
+                <td>Health</td>
+                <td>1 HP (when visible)</td>
+              </tr>
+              <tr>
+                <td>Damage</td>
+                <td>24 HP (1.2× base)</td>
+              </tr>
+              <tr>
+                <td>Speed</td>
+                <td>1.6 units/frame (0.8× base)</td>
+              </tr>
+              <tr>
+                <td>Phase Cycle</td>
+                <td>Continuous sine wave</td>
+              </tr>
+              <tr>
+                <td>Immunity Threshold</td>
+                <td>Alpha < 100</td>
+              </tr>
+            </table>
+          </div>
+        </article>
+
+        <article class="subsection">
+          <h3>4.3 Ceiling-Based Enemies</h3>
+          <p>
+            Ceiling enemies mirror ground enemy types but are positioned on the
+            ceiling, creating threats when the player uses gravity flip.
+          </p>
+
+          <ul>
+            <li>
+              <strong>Ceiling Basic:</strong> Patrol enemy attached to ceiling
+            </li>
+            <li>
+              <strong>Ceiling Chaser:</strong> Pursues player along ceiling
+              surface
+            </li>
+            <li>
+              <strong>Ceiling Shooter:</strong> Inverted turret firing downward
+            </li>
+            <li><strong>Ceiling Ghost:</strong> Phasing enemy on ceiling</li>
+          </ul>
+
+          <div class="info-box">
+            <h4>Design Note</h4>
+            <p>
+              Ceiling enemies use a purple-tinted color palette (80, 40, 120) to
+              visually distinguish them from ground enemies.
+            </p>
+          </div>
+        </article>
+
+        <article class="subsection">
+          <h3>4.4 Flying Enemies</h3>
+          <div class="enemy-card">
+            <h4>🟢 Flying Enemy</h4>
+            <p class="enemy-desc">
+              Enemy that moves through the air, threatening both ground and
+              ceiling positions.
+            </p>
+            <table class="data-table compact">
+              <tr>
+                <td>Color</td>
+                <td>Green-tinted (60, 100, 80)</td>
+              </tr>
+              <tr>
+                <td>Speed</td>
+                <td>3 units/frame (1.5× base)</td>
+              </tr>
+              <tr>
+                <td>Movement</td>
+                <td>Sine-wave vertical oscillation</td>
+              </tr>
+            </table>
+          </div>
+
+          <div class="enemy-card">
+            <h4>🕷️ Spider Enemy</h4>
+            <p class="enemy-desc">
+              Drops from ceiling or rises from ground when player approaches.
+            </p>
+          </div>
+
+          <div class="enemy-card">
+            <h4>🌀 Teleporter Enemy</h4>
+            <p class="enemy-desc">
+              Blinks between positions, creating unpredictable threats.
+            </p>
+          </div>
+        </article>
+
+        <article class="subsection">
+          <h3>4.5 Enemy Behavior Patterns</h3>
+          <div class="two-column">
+            <div class="column">
+              <h4>Individual Behaviors</h4>
+              <ul>
+                <li><strong>Patrol:</strong> Back-and-forth movement</li>
+                <li><strong>Chase:</strong> Pursue player when detected</li>
+                <li><strong>Shoot:</strong> Fire projectiles at player</li>
+                <li><strong>Charge:</strong> Wind-up then rush attack</li>
+                <li><strong>Phase:</strong> Cycle visibility/immunity</li>
+              </ul>
+            </div>
+            <div class="column">
+              <h4>Group Patterns</h4>
+              <ul>
+                <li><strong>Swarm:</strong> 3-6 enemies spawned together</li>
+                <li><strong>Swarm Spacing:</strong> 120 pixels apart</li>
+                <li><strong>Swarm Unlock:</strong> 5000+ score</li>
+                <li><strong>Swarm Chance:</strong> 0% → 25% (scales)</li>
+              </ul>
+            </div>
+          </div>
+        </article>
+
+        <article class="subsection">
+          <h3>4.6 Difficulty Progression</h3>
+          <p>Enemy spawning and variety scales smoothly with player score:</p>
+
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Score Range</th>
+                <th>Enemy Types</th>
+                <th>Weights (Basic/Chaser/Shooter/Berserker)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>0 – 500</td>
+                <td>Basic only</td>
+                <td>100% / 0% / 0% / 0%</td>
+              </tr>
+              <tr>
+                <td>500 – 1500</td>
+                <td>Basic, Chaser</td>
+                <td>60% / 40% / 0% / 0%</td>
+              </tr>
+              <tr>
+                <td>1500 – 3000</td>
+                <td>Basic, Chaser, Shooter</td>
+                <td>40% / 35% / 25% / 0%</td>
+              </tr>
+              <tr>
+                <td>3000 – 5000</td>
+                <td>All types</td>
+                <td>25% / 30% / 25% / 20%</td>
+              </tr>
+              <tr>
+                <td>5000+</td>
+                <td>All types + Swarms</td>
+                <td>15% / 25% / 30% / 30%</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h4>Spawn Rate Scaling</h4>
+          <table class="data-table">
+            <tbody>
+              <tr>
+                <td>Base Spawn Interval</td>
+                <td>500 pixels</td>
+              </tr>
+              <tr>
+                <td>Minimum Spawn Interval</td>
+                <td>150 pixels (at max difficulty)</td>
+              </tr>
+              <tr>
+                <td>Base Spawn Chance</td>
+                <td>40%</td>
+              </tr>
+              <tr>
+                <td>Maximum Spawn Chance</td>
+                <td>85%</td>
+              </tr>
+              <tr>
+                <td>Enemy Speed Multiplier</td>
+                <td>1.0× → 2.5×</td>
+              </tr>
+            </tbody>
+          </table>
+        </article>
+      </section>
+
+      <!-- Section 5: Game Systems -->
+      <section id="systems" class="gdd-section page-break-before">
+        <h2><span class="section-number">5</span> Game Systems</h2>
+
+        <article class="subsection">
+          <h3>5.1 Health System</h3>
+          <table class="data-table">
+            <tbody>
+              <tr>
+                <td>Maximum Health</td>
+                <td>100 HP</td>
+              </tr>
+              <tr>
+                <td>Starting Health</td>
+                <td>100 HP</td>
+              </tr>
+              <tr>
+                <td>Invincibility on Hit</td>
+                <td>1500ms (1.5 seconds)</td>
+              </tr>
+              <tr>
+                <td>Health Pack Restore</td>
+                <td>25 HP</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h4>Damage Sources</h4>
+          <ul>
+            <li>Contact with basic enemies: 20 HP</li>
+            <li>Contact with chasers: 30 HP</li>
+            <li>Contact with berserkers: 40 HP</li>
+            <li>Enemy projectiles: 10 HP</li>
+          </ul>
+
+          <div class="info-box">
+            <h4>Invincibility Frames</h4>
+            <p>
+              After taking damage, the player becomes temporarily invincible and
+              blinks to indicate this state. This prevents chain-damage
+              scenarios and gives players recovery time.
+            </p>
+          </div>
+        </article>
+
+        <article class="subsection">
+          <h3>5.2 Ammo System</h3>
+          <div class="mechanic-card">
+            <h4>Ammunition Management</h4>
+            <table class="data-table">
+              <tbody>
+                <tr>
+                  <td>Maximum Ammunition</td>
+                  <td>5 bullets</td>
+                </tr>
+                <tr>
+                  <td>Starting Ammunition</td>
+                  <td>5 bullets</td>
+                </tr>
+                <tr>
+                  <td>Regeneration Rate</td>
+                  <td>1 bullet per 10 seconds</td>
+                </tr>
+                <tr>
+                  <td>Regeneration Type</td>
+                  <td>Passive (always regenerating)</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p>
+            The limited ammo pool with slow regeneration creates meaningful
+            resource decisions. Players cannot rely solely on shooting and must
+            incorporate jumping and gravity-flipping into their survival
+            strategy.
+          </p>
+        </article>
+
+        <article class="subsection">
+          <h3>5.3 Invisibility System</h3>
+          <div class="mechanic-card">
+            <h4>Stealth Mechanic</h4>
+            <table class="data-table">
+              <tbody>
+                <tr>
+                  <td>Invisibility Duration</td>
+                  <td>3 seconds when activated</td>
+                </tr>
+                <tr>
+                  <td>Charge Time</td>
+                  <td>15 seconds to fully charge</td>
+                </tr>
+                <tr>
+                  <td>Player Alpha (Invisible)</td>
+                  <td>80 / 255 (semi-transparent)</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p>
+            While invisible, enemies cannot detect or damage the player. This
+            provides an emergency escape option but requires careful timing due
+            to the long charge period.
+          </p>
+        </article>
+
+        <article class="subsection">
+          <h3>5.4 Score System</h3>
+          <h4>Score Sources</h4>
+          <ul>
+            <li>
+              <strong>Distance:</strong> Points accumulated based on distance
+              traveled
+            </li>
+            <li><strong>Coins:</strong> 10 points per coin collected</li>
+            <li><strong>Enemies:</strong> Points for eliminating enemies</li>
+            <li>
+              <strong>Survival Time:</strong> Bonus points for staying alive
+            </li>
+          </ul>
+
+          <h4>Difficulty Milestones</h4>
+          <p>
+            Every 1000 points triggers a difficulty milestone notification,
+            providing feedback on progression without disrupting gameplay.
+          </p>
+        </article>
+
+        <article class="subsection">
+          <h3>5.5 High Score Persistence</h3>
+          <div class="info-box">
+            <h4>Leaderboard System</h4>
+            <ul>
+              <li>
+                <strong>Storage:</strong> JSON file (data/leaderboard.json)
+              </li>
+              <li><strong>Maximum Entries:</strong> 10 scores</li>
+              <li><strong>Data Stored:</strong> Player name, score, date</li>
+              <li><strong>Display:</strong> Accessible from main menu</li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="subsection">
+          <h3>5.6 Difficulty Scaling System</h3>
+          <p>
+            The difficulty system uses smooth mathematical curves rather than
+            discrete levels, creating imperceptible increases that feel natural.
+          </p>
+
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Parameter</th>
+                <th>Scaling Method</th>
+                <th>Range</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Game Speed</td>
+                <td>Ease-out quadratic</td>
+                <td>1.0× → 2.0×</td>
+              </tr>
+              <tr>
+                <td>Spawn Interval</td>
+                <td>Ease-in quadratic</td>
+                <td>500 → 150 pixels</td>
+              </tr>
+              <tr>
+                <td>Spawn Chance</td>
+                <td>Linear interpolation</td>
+                <td>40% → 85%</td>
+              </tr>
+              <tr>
+                <td>Enemy Speed</td>
+                <td>Linear interpolation</td>
+                <td>1.0× → 2.5×</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <p>
+            <strong>Maximum Difficulty Score:</strong> 10,000 points (soft cap;
+            continues slowly beyond)
+          </p>
+          <p><strong>Maximum Difficulty Multiplier:</strong> 3.0×</p>
+        </article>
+      </section>
+
+      <!-- Section 6: Level & World Design -->
+      <section id="level-design" class="gdd-section page-break-before">
+        <h2><span class="section-number">6</span> Level & World Design</h2>
+
+        <article class="subsection">
+          <h3>6.1 Ground and Ceiling Layout</h3>
+          <div class="two-column">
+            <div class="column">
+              <h4>Ground Surface</h4>
+              <ul>
+                <li>Height: 100 pixels</li>
+                <li>Color: Dark brown (25, 20, 15)</li>
+                <li>Top highlight: (35, 30, 25)</li>
+                <li>Continuous solid platform</li>
+              </ul>
+            </div>
+            <div class="column">
+              <h4>Ceiling Surface</h4>
+              <ul>
+                <li>Height: 100 pixels (mirrors ground)</li>
+                <li>Same color palette as ground</li>
+                <li>Inverted collision detection</li>
+                <li>Accessible via gravity flip</li>
+              </ul>
+            </div>
+          </div>
+        </article>
+
+        <article class="subsection">
+          <h3>6.2 Procedural Generation</h3>
+          <div class="feature-box">
+            <h4>World Generation System</h4>
+            <p>
+              The WorldGenerator class creates infinite terrain ahead of the
+              player while cleaning up passed segments to maintain performance.
+            </p>
+
+            <h4>Generation Rules</h4>
+            <ul>
+              <li>Terrain generates when camera approaches edge</li>
+              <li>Segments behind player are removed from memory</li>
+              <li>Enemy spawn points are distributed procedurally</li>
+              <li>Collectible placement follows weighted randomization</li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="subsection">
+          <h3>6.3 Environmental Hazards</h3>
+          <p>
+            While the primary challenges come from enemies, the environment
+            contributes to atmosphere and spatial awareness:
+          </p>
+          <ul>
+            <li>Limited visibility in fog areas</li>
+            <li>Visual distractions from parallax elements</li>
+            <li>Narrow safe zones between enemy patterns</li>
+          </ul>
+        </article>
+
+        <article class="subsection">
+          <h3>6.4 Atmosphere & Mood</h3>
+          <div class="highlight-box">
+            <h4>Dark Night Setting</h4>
+            <p>
+              The game takes place in an endless nightmare landscape featuring:
+            </p>
+            <ul>
+              <li>Deep night sky gradient (near-black to dark purple)</li>
+              <li>Silhouetted dead trees and mountains</li>
+              <li>Drifting fog particles</li>
+              <li>Pale moon in the background</li>
+              <li>Sparse, eerie star field</li>
+            </ul>
+          </div>
+        </article>
+      </section>
+
+      <!-- Section 7: Art & Visual Style -->
+      <section id="art" class="gdd-section page-break-before">
+        <h2><span class="section-number">7</span> Art & Visual Style</h2>
+
+        <article class="subsection">
+          <h3>7.1 Visual Theme</h3>
+          <p>
+            Shadow Run employs a <strong>dark horror aesthetic</strong> inspired
+            by games like <em>Limbo</em>, <em>Inside</em>, and
+            <em>Dead Cells</em>. The visual style emphasizes silhouettes, high
+            contrast, and atmospheric lighting.
+          </p>
+
+          <div class="info-box">
+            <h4>Art Direction Goals</h4>
+            <ul>
+              <li>Create oppressive, unsettling atmosphere</li>
+              <li>Maintain gameplay clarity despite dark palette</li>
+              <li>Use color strategically to highlight threats and pickups</li>
+              <li>Achieve cohesive, polished indie horror look</li>
+            </ul>
+          </div>
+        </article>
+
+        <article class="subsection">
+          <h3>7.2 Color Palette</h3>
+
+          <h4>Background Colors</h4>
+          <div class="color-palette">
+            <div class="color-swatch" style="background-color: rgb(5, 5, 15)">
+              <span>Night Sky Top<br />(5, 5, 15)</span>
+            </div>
+            <div class="color-swatch" style="background-color: rgb(15, 10, 25)">
+              <span>Night Sky Bottom<br />(15, 10, 25)</span>
+            </div>
+            <div class="color-swatch" style="background-color: rgb(20, 15, 25)">
+              <span>Fog<br />(20, 15, 25)</span>
+            </div>
+            <div class="color-swatch" style="background-color: rgb(25, 20, 15)">
+              <span>Ground Dark<br />(25, 20, 15)</span>
+            </div>
+          </div>
+
+          <h4>UI Colors</h4>
+          <div class="color-palette">
+            <div class="color-swatch" style="background-color: rgb(10, 5, 15)">
+              <span>UI Background<br />(10, 5, 15)</span>
+            </div>
+            <div
+              class="color-swatch"
+              style="background-color: rgb(120, 40, 60)"
+            >
+              <span>UI Accent<br />(120, 40, 60)</span>
+            </div>
+            <div
+              class="color-swatch"
+              style="background-color: rgb(180, 60, 80)"
+            >
+              <span>UI Highlight<br />(180, 60, 80)</span>
+            </div>
+            <div
+              class="color-swatch"
+              style="background-color: rgb(200, 30, 30)"
+            >
+              <span>UI Danger<br />(200, 30, 30)</span>
+            </div>
+          </div>
+
+          <h4>Entity Colors</h4>
+          <div class="color-palette">
+            <div
+              class="color-swatch"
+              style="background-color: rgb(100, 80, 120)"
+            >
+              <span>Player<br />(100, 80, 120)</span>
+            </div>
+            <div
+              class="color-swatch"
+              style="background-color: rgb(120, 30, 30)"
+            >
+              <span>Enemy<br />(120, 30, 30)</span>
+            </div>
+            <div
+              class="color-swatch"
+              style="background-color: rgb(150, 50, 30)"
+            >
+              <span>Fast Enemy<br />(150, 50, 30)</span>
+            </div>
+            <div
+              class="color-swatch"
+              style="background-color: rgb(80, 40, 120)"
+            >
+              <span>Ceiling Enemy<br />(80, 40, 120)</span>
+            </div>
+          </div>
+
+          <h4>Collectible & Effect Colors</h4>
+          <div class="color-palette">
+            <div
+              class="color-swatch"
+              style="background-color: rgb(180, 160, 80)"
+            >
+              <span>Coins<br />(180, 160, 80)</span>
+            </div>
+            <div
+              class="color-swatch"
+              style="background-color: rgb(255, 180, 100)"
+            >
+              <span>Ammo<br />(255, 180, 100)</span>
+            </div>
+            <div
+              class="color-swatch"
+              style="background-color: rgb(255, 150, 50)"
+            >
+              <span>Bullets<br />(255, 150, 50)</span>
+            </div>
+            <div
+              class="color-swatch"
+              style="background-color: rgb(100, 200, 255)"
+            >
+              <span>Invisibility<br />(100, 200, 255)</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="subsection">
+          <h3>7.3 Character Visibility</h3>
+          <div class="feature-box">
+            <h4>Contrast Rules</h4>
+            <ul>
+              <li>
+                <strong>Player:</strong> Purple-gray tone stands out against
+                dark backgrounds
+              </li>
+              <li>
+                <strong>Enemies:</strong> Red tones create immediate threat
+                recognition
+              </li>
+              <li>
+                <strong>Collectibles:</strong> Warm gold/yellow attracts
+                attention
+              </li>
+              <li>
+                <strong>Projectiles:</strong> Bright orange/white for tracking
+              </li>
+            </ul>
+          </div>
+
+          <p>
+            All gameplay-critical elements maintain high contrast against the
+            dark environment while decorative elements remain subtle.
+          </p>
+        </article>
+
+        <article class="subsection">
+          <h3>7.4 Animation</h3>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Animation</th>
+                <th>Frame Count</th>
+                <th>Speed</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Player Idle</td>
+                <td>4 frames</td>
+                <td>100ms/frame</td>
+              </tr>
+              <tr>
+                <td>Player Walk</td>
+                <td>4 frames</td>
+                <td>100ms/frame</td>
+              </tr>
+              <tr>
+                <td>Player Jump</td>
+                <td>4 frames</td>
+                <td>100ms/frame</td>
+              </tr>
+              <tr>
+                <td>Player Dash</td>
+                <td>4 frames</td>
+                <td>100ms/frame</td>
+              </tr>
+              <tr>
+                <td>Enemy Bob</td>
+                <td>2 frames</td>
+                <td>Sine wave</td>
+              </tr>
+            </tbody>
+          </table>
+        </article>
+
+        <article class="subsection">
+          <h3>7.5 Visual Effects</h3>
+          <ul>
+            <li>
+              <strong>Parallax Scrolling:</strong> 4 background layers at
+              different speeds
+            </li>
+            <li>
+              <strong>Fog Particles:</strong> Drifting atmospheric particles
+            </li>
+            <li><strong>Hit Flash:</strong> White flash on damage</li>
+            <li>
+              <strong>Invincibility Blink:</strong> Transparency oscillation
+            </li>
+            <li><strong>Berserker Charge Trail:</strong> Motion blur effect</li>
+            <li><strong>Death Particles:</strong> Explosion on enemy death</li>
+          </ul>
+        </article>
+      </section>
+
+      <!-- Section 8: Audio Design -->
+      <section id="audio" class="gdd-section page-break-before">
+        <h2><span class="section-number">8</span> Audio Design</h2>
+
+        <article class="subsection">
+          <h3>8.1 Audio Philosophy</h3>
+          <p>
+            The audio design follows a
+            <strong>AAA-style dynamic mixing system</strong> inspired by games
+            like <em>Dead Space</em>, <em>Limbo</em>, and <em>Inside</em>. Sound
+            reinforces the horror atmosphere while providing clear gameplay
+            feedback.
+          </p>
+        </article>
+
+        <article class="subsection">
+          <h3>8.2 Background Music & Ambience</h3>
+          <div class="feature-box">
+            <h4>Layered Ambient System</h4>
+            <p>
+              The AmbientMixer class manages multiple audio layers that
+              crossfade based on gameplay intensity:
+            </p>
+
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Layer</th>
+                  <th>Description</th>
+                  <th>Base Volume</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Horror Ambience</td>
+                  <td>Unsettling drones, distant sounds</td>
+                  <td>40%</td>
+                </tr>
+                <tr>
+                  <td>Pond Ambience</td>
+                  <td>Natural, eerie outdoor sounds</td>
+                  <td>35%</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <h4>Dynamic Mixing</h4>
+          <ul>
+            <li>Volume levels adjust based on gameplay intensity</li>
+            <li>Smooth transitions (fade speed: 0.02 per frame)</li>
+            <li>Loops seamlessly without noticeable repetition</li>
+          </ul>
+        </article>
+
+        <article class="subsection">
+          <h3>8.3 Sound Effects</h3>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Action</th>
+                <th>Sound Description</th>
+                <th>Purpose</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Jump</td>
+                <td>Whoosh / light impact</td>
+                <td>Confirm action, spatial awareness</td>
+              </tr>
+              <tr>
+                <td>Shoot</td>
+                <td>Sharp projectile fire</td>
+                <td>Confirm action, feedback</td>
+              </tr>
+              <tr>
+                <td>Hit Enemy</td>
+                <td>Impact / squelch</td>
+                <td>Damage confirmation</td>
+              </tr>
+              <tr>
+                <td>Take Damage</td>
+                <td>Pain / thud</td>
+                <td>Alert player to danger</td>
+              </tr>
+              <tr>
+                <td>Gravity Flip</td>
+                <td>Woosh / inversion tone</td>
+                <td>Orientation feedback</td>
+              </tr>
+              <tr>
+                <td>Collect Coin</td>
+                <td>Chime / pickup sound</td>
+                <td>Reward feedback</td>
+              </tr>
+              <tr>
+                <td>Invisibility Activate</td>
+                <td>Ethereal whoosh</td>
+                <td>State change indication</td>
+              </tr>
+              <tr>
+                <td>Enemy Death</td>
+                <td>Defeat sound / pop</td>
+                <td>Elimination confirmation</td>
+              </tr>
+            </tbody>
+          </table>
+        </article>
+
+        <article class="subsection">
+          <h3>8.4 Audio Settings</h3>
+          <table class="data-table">
+            <tbody>
+              <tr>
+                <td>Music Volume (Default)</td>
+                <td>50%</td>
+              </tr>
+              <tr>
+                <td>SFX Volume (Default)</td>
+                <td>70%</td>
+              </tr>
+              <tr>
+                <td>Audio Channels</td>
+                <td>16 (reserved for mixing)</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <div class="info-box">
+            <h4>Procedural Sound Generation</h4>
+            <p>
+              If audio files are not present, the game generates procedural
+              sounds programmatically to ensure audio feedback is always
+              available.
+            </p>
+          </div>
+        </article>
+      </section>
+
+      <!-- Section 9: UI/UX Design -->
+      <section id="ui-ux" class="gdd-section page-break-before">
+        <h2><span class="section-number">9</span> UI/UX Design</h2>
+
+        <article class="subsection">
+          <h3>9.1 Main Menu</h3>
+          <div class="ui-mockup">
+            <div class="mockup-box">
+              <p class="mockup-title">SHADOW RUN</p>
+              <p class="mockup-subtitle">Endless Nightmare</p>
+              <div class="mockup-buttons">
+                <div class="mockup-btn">▶ START GAME</div>
+                <div class="mockup-btn">📖 TUTORIAL</div>
+                <div class="mockup-btn">🏆 LEADERBOARD</div>
+                <div class="mockup-btn">⚙ SETTINGS</div>
+                <div class="mockup-btn">✕ QUIT</div>
+              </div>
+            </div>
+          </div>
+
+          <h4>Menu Features</h4>
+          <ul>
+            <li>Animated background with parallax effect</li>
+            <li>Button hover effects with color transitions</li>
+            <li>Keyboard and mouse navigation</li>
+            <li>Horror-themed fonts and styling</li>
+          </ul>
+        </article>
+
+        <article class="subsection">
+          <h3>9.2 Tutorial Screen</h3>
+          <p>Interactive onboarding that teaches core mechanics:</p>
+          <ol>
+            <li>Movement explanation (automatic running)</li>
+            <li>Jump mechanics and timing</li>
+            <li>Shooting and ammo management</li>
+            <li>Gravity flip introduction</li>
+            <li>Invisibility system overview</li>
+            <li>Enemy types preview</li>
+          </ol>
+        </article>
+
+        <article class="subsection">
+          <h3>9.3 Heads-Up Display (HUD)</h3>
+          <div class="ui-mockup hud-mockup">
+            <div class="hud-top-left">
+              <div class="hud-bar health-bar">
+                <span class="bar-fill"></span>
+                <span class="bar-label">HP 100/100</span>
+              </div>
+              <div class="hud-bar ammo-bar">
+                <span class="bar-fill"></span>
+                <span class="bar-label">BULLETS 5/5</span>
+              </div>
+            </div>
+            <div class="hud-top-right">
+              <div class="hud-score">SCORE: 0</div>
+              <div class="hud-coins">COINS: 0</div>
+              <div class="hud-best">BEST: 1000</div>
+            </div>
+            <div class="hud-bottom-right">
+              <div class="invis-button">INVIS</div>
+            </div>
+          </div>
+
+          <h4>HUD Elements</h4>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Element</th>
+                <th>Position</th>
+                <th>Information</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Health Bar</td>
+                <td>Top-left</td>
+                <td>Current HP / Max HP, red fill</td>
+              </tr>
+              <tr>
+                <td>Ammo Bar</td>
+                <td>Below health</td>
+                <td>Current bullets / Max, orange fill</td>
+              </tr>
+              <tr>
+                <td>Score</td>
+                <td>Top-right</td>
+                <td>Current run score</td>
+              </tr>
+              <tr>
+                <td>Coins</td>
+                <td>Below score</td>
+                <td>Coins collected this run</td>
+              </tr>
+              <tr>
+                <td>Best Score</td>
+                <td>Below coins</td>
+                <td>Personal high score</td>
+              </tr>
+              <tr>
+                <td>Invisibility</td>
+                <td>Bottom-right</td>
+                <td>Charge status and activation button</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <h4>Controls Hint Overlay</h4>
+          <p>
+            During the first 12 seconds of gameplay, control hints appear on
+            screen:
+          </p>
+          <ul>
+            <li>Hints fade out starting at 7 seconds remaining</li>
+            <li>Shows all core actions with key bindings</li>
+            <li>Color-coded for quick recognition</li>
+          </ul>
+        </article>
+
+        <article class="subsection">
+          <h3>9.4 Pause Menu</h3>
+          <div class="ui-mockup">
+            <div class="mockup-box overlay">
+              <p class="mockup-title">PAUSED</p>
+              <div class="mockup-buttons">
+                <div class="mockup-btn">▶ RESUME</div>
+                <div class="mockup-btn">🔄 RESTART</div>
+                <div class="mockup-btn">⚙ SETTINGS</div>
+                <div class="mockup-btn">🏠 MAIN MENU</div>
+              </div>
+            </div>
+          </div>
+          <p>
+            Semi-transparent overlay that darkens the gameplay while displaying
+            options.
+          </p>
+        </article>
+
+        <article class="subsection">
+          <h3>9.5 Game Over Screen</h3>
+          <div class="ui-mockup">
+            <div class="mockup-box overlay">
+              <p class="mockup-title">GAME OVER</p>
+              <p class="mockup-score">SCORE: 2,450</p>
+              <p class="mockup-best">NEW HIGH SCORE!</p>
+              <div class="mockup-buttons">
+                <div class="mockup-btn">🔄 PLAY AGAIN</div>
+                <div class="mockup-btn">🏆 LEADERBOARD</div>
+                <div class="mockup-btn">🏠 MAIN MENU</div>
+              </div>
+            </div>
+          </div>
+
+          <h4>Features</h4>
+          <ul>
+            <li>Final score display with animation</li>
+            <li>High score notification if applicable</li>
+            <li>Name entry for leaderboard submission</li>
+            <li>Quick restart option</li>
+          </ul>
+        </article>
+      </section>
+
+      <!-- Section 10: Technical Design -->
+      <section id="technical" class="gdd-section page-break-before">
+        <h2><span class="section-number">10</span> Technical Design</h2>
+
+        <article class="subsection">
+          <h3>10.1 Technologies</h3>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Component</th>
+                <th>Technology</th>
+                <th>Version</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Language</td>
+                <td>Python</td>
+                <td>3.8+</td>
+              </tr>
+              <tr>
+                <td>Game Framework</td>
+                <td>Pygame</td>
+                <td>2.x</td>
+              </tr>
+              <tr>
+                <td>Data Storage</td>
+                <td>JSON</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td>Audio Format</td>
+                <td>OGG Vorbis</td>
+                <td>—</td>
+              </tr>
+              <tr>
+                <td>Image Format</td>
+                <td>PNG</td>
+                <td>—</td>
+              </tr>
+            </tbody>
+          </table>
+        </article>
+
+        <article class="subsection">
+          <h3>10.2 Architecture</h3>
+          <div class="code-structure">
+            <pre>
+Shadow-Run/
+├── unigame.py          # Entry point
+├── game/
+│   ├── __init__.py
+│   ├── game.py         # Main game manager
+│   ├── player.py       # Player class
+│   ├── enemies.py      # Enemy classes
+│   ├── platforms.py    # Ground/ceiling generation
+│   ├── collectibles.py # Coins, health, powerups
+│   ├── difficulty.py   # Difficulty scaling
+│   ├── camera.py       # Camera system
+│   ├── sound.py        # Audio manager
+│   ├── background.py   # Parallax backgrounds
+│   ├── ui.py           # All UI elements
+│   ├── leaderboard.py  # Score persistence
+│   ├── settings.py     # Constants & config
+│   └── utils.py        # Helper functions
+├── assets/
+│   ├── audio/          # Sound files
+│   └── sprites/        # Image assets
+└── data/
+    └── leaderboard.json
+                    </pre
+            >
+          </div>
+        </article>
+
+        <article class="subsection">
+          <h3>10.3 Resolution & Display</h3>
+          <table class="data-table">
+            <tbody>
+              <tr>
+                <td>Native Resolution</td>
+                <td>1280 × 720 (720p)</td>
+              </tr>
+              <tr>
+                <td>Aspect Ratio</td>
+                <td>16:9</td>
+              </tr>
+              <tr>
+                <td>Target Frame Rate</td>
+                <td>60 FPS</td>
+              </tr>
+              <tr>
+                <td>Display Mode</td>
+                <td>Windowed</td>
+              </tr>
+            </tbody>
+          </table>
+        </article>
+
+        <article class="subsection">
+          <h3>10.4 Performance Considerations</h3>
+          <ul>
+            <li>
+              <strong>Object Pooling:</strong> Reuse sprite objects to reduce
+              allocation
+            </li>
+            <li>
+              <strong>Culling:</strong> Only update/render objects near camera
+            </li>
+            <li>
+              <strong>Procedural Cleanup:</strong> Remove off-screen world
+              segments
+            </li>
+            <li>
+              <strong>Cached Calculations:</strong> Difficulty values cached
+              until score changes
+            </li>
+            <li>
+              <strong>Sprite Groups:</strong> Pygame's optimized group rendering
+            </li>
+          </ul>
+        </article>
+
+        <article class="subsection">
+          <h3>10.5 Browser/Platform Compatibility</h3>
+          <div class="info-box">
+            <h4>Supported Platforms</h4>
+            <ul>
+              <li><strong>Windows:</strong> 10, 11 (primary target)</li>
+              <li><strong>macOS:</strong> 10.14+ (Mojave and later)</li>
+              <li>
+                <strong>Linux:</strong> Ubuntu 18.04+, other distros with Python
+                3.8+
+              </li>
+            </ul>
+          </div>
+
+          <h4>Dependencies</h4>
+          <ul>
+            <li>Python 3.8 or higher</li>
+            <li>Pygame 2.0 or higher</li>
+            <li>No additional external dependencies</li>
+          </ul>
+        </article>
+      </section>
+
+      <!-- Section 11: Future Improvements -->
+      <section id="future" class="gdd-section page-break-before">
+        <h2><span class="section-number">11</span> Future Improvements</h2>
+
+        <article class="subsection">
+          <h3>11.1 Additional Mechanics</h3>
+          <div class="roadmap">
+            <div class="roadmap-item">
+              <h4>🎯 Double Jump</h4>
+              <p>Unlockable ability allowing a second jump in mid-air.</p>
+              <span class="priority">Priority: High</span>
+            </div>
+            <div class="roadmap-item">
+              <h4>🛡️ Shield Power-Up</h4>
+              <p>Temporary damage absorption collectible.</p>
+              <span class="priority">Priority: Medium</span>
+            </div>
+            <div class="roadmap-item">
+              <h4>⚡ Dash Ability</h4>
+              <p>Quick horizontal burst for dodging and closing gaps.</p>
+              <span class="priority">Priority: Medium</span>
+            </div>
+            <div class="roadmap-item">
+              <h4>🔫 Weapon Variants</h4>
+              <p>Different projectile types (spread, pierce, explosive).</p>
+              <span class="priority">Priority: Low</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="subsection">
+          <h3>11.2 New Enemy Types</h3>
+          <div class="roadmap">
+            <div class="roadmap-item">
+              <h4>🦇 Bat Swarm</h4>
+              <p>Small, fast enemies that attack in coordinated groups.</p>
+            </div>
+            <div class="roadmap-item">
+              <h4>👁️ Watcher</h4>
+              <p>
+                Stationary enemy that buffs nearby enemies when player is
+                detected.
+              </p>
+            </div>
+            <div class="roadmap-item">
+              <h4>🌊 Phaser</h4>
+              <p>Enemy that teleports between ground and ceiling.</p>
+            </div>
+            <div class="roadmap-item">
+              <h4>💀 Boss Encounters</h4>
+              <p>
+                Large-scale enemies at score milestones with unique patterns.
+              </p>
+            </div>
+          </div>
+        </article>
+
+        <article class="subsection">
+          <h3>11.3 Visual & Audio Enhancements</h3>
+          <ul>
+            <li>Additional parallax layers and environmental variety</li>
+            <li>Weather effects (rain, lightning, mist)</li>
+            <li>Screen shake on impacts and explosions</li>
+            <li>Particle system expansion (blood, sparks, debris)</li>
+            <li>Dynamic music intensity based on threat level</li>
+            <li>Voice lines or text barks for enemies</li>
+          </ul>
+        </article>
+
+        <article class="subsection">
+          <h3>11.4 Platform Expansion</h3>
+          <table class="data-table">
+            <thead>
+              <tr>
+                <th>Platform</th>
+                <th>Feasibility</th>
+                <th>Notes</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Web (HTML5)</td>
+                <td>High</td>
+                <td>Pygbag or similar for browser deployment</td>
+              </tr>
+              <tr>
+                <td>Mobile (iOS/Android)</td>
+                <td>Medium</td>
+                <td>Touch controls, performance optimization needed</td>
+              </tr>
+              <tr>
+                <td>Console</td>
+                <td>Low</td>
+                <td>Would require engine port (Unity/Godot)</td>
+              </tr>
+            </tbody>
+          </table>
+        </article>
+
+        <article class="subsection">
+          <h3>11.5 Social Features</h3>
+          <ul>
+            <li>Online leaderboards with global rankings</li>
+            <li>Daily/weekly challenges with unique modifiers</li>
+            <li>Replay system for sharing runs</li>
+            <li>Achievement system with unlock rewards</li>
+            <li>Cosmetic unlocks for player character</li>
+          </ul>
+        </article>
+      </section>
+
+      <!-- Footer -->
+      <footer class="document-footer">
+        <div class="footer-content">
+          <p>
+            <strong>SHADOW RUN: Endless Nightmare</strong> — Game Design
+            Document v1.0
+          </p>
+          <p>© 2026 Shadow Run Development Team. All rights reserved.</p>
+          <p class="footer-note">Made by : Danesh khodadadzadeh</p>
+        </div>
+      </footer>
+    </main>
+
+    <script src="script.js"></script>
+  </body>
+</html>
